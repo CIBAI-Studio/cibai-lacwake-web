@@ -1,5 +1,7 @@
 ---
-import { RESERVAS } from '../config/reservas';
+import { getSiteConfig } from '../lib/cms';
+
+const siteConfig = await getSiteConfig();
 
 interface Props {
   title: string;
@@ -62,7 +64,7 @@ const {
         <span class="card-link-arrow" aria-hidden="true">→</span>
       </a>
       <a
-        href={RESERVAS.url}
+        href={siteConfig.whatsappUrl}
         class="card-cta"
         target="_blank"
         rel="noopener noreferrer"

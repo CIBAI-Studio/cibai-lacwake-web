@@ -1,6 +1,8 @@
 ---
 import BaseLayout from './BaseLayout.astro';
-import { RESERVAS } from '../config/reservas';
+import { getSiteConfig } from '../lib/cms';
+
+const siteConfig = await getSiteConfig();
 
 interface Props {
   title: string;
@@ -106,12 +108,12 @@ const {
           )}
 
           <a
-            href={RESERVAS.url}
+            href={siteConfig.whatsappUrl}
             class="sidebar-cta"
             target="_blank"
             rel="noopener noreferrer"
           >
-            {RESERVAS.label}
+            {siteConfig.whatsappLabel}
           </a>
           <p class="sidebar-note">Sin tarjeta de crédito. Confirmación inmediata.</p>
         </div>

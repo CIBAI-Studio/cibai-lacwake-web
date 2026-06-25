@@ -1,12 +1,7 @@
 ---
-import { RESERVAS } from '../config/reservas';
+import { getMenu, getSiteConfig } from '../lib/cms';
 
-const navLinks = [
-  { href: '/', label: 'Inicio' },
-  { href: '/#actividades', label: 'Actividades' },
-  { href: '/contactar', label: 'Contactar' },
-];
-
+const [navLinks, siteConfig] = await Promise.all([getMenu(), getSiteConfig()]);
 const currentPath = Astro.url.pathname;
 ---
 
@@ -39,13 +34,13 @@ const currentPath = Astro.url.pathname;
 
       <!-- CTA -->
       <a
-        href={RESERVAS.url}
+        href={siteConfig.whatsappUrl}
         class="nav-cta"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label={`${RESERVAS.labelShort} — abre en nueva pestaña`}
+        aria-label={`${siteConfig.whatsappLabelShort} — abre en nueva pestaña`}
       >
-        {RESERVAS.labelShort}
+        {siteConfig.whatsappLabelShort}
       </a>
 
       <!-- Mobile hamburger -->
@@ -81,13 +76,13 @@ const currentPath = Astro.url.pathname;
       ))}
       <li>
         <a
-          href={RESERVAS.url}
+          href={siteConfig.whatsappUrl}
           class="mobile-cta"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`${RESERVAS.label} — abre en nueva pestaña`}
+          aria-label={`${siteConfig.whatsappLabel} — abre en nueva pestaña`}
         >
-          {RESERVAS.label}
+          {siteConfig.whatsappLabel}
         </a>
       </li>
     </ul>

@@ -6,6 +6,10 @@ interface Props {
   subtitle?: string;
   videoSrc?: string;
   fallbackImage?: string;
+  ctaUrl?: string;
+  ctaLabel?: string;
+  ctaSecondaryLabel?: string;
+  ctaSecondaryUrl?: string;
 }
 
 const {
@@ -13,6 +17,10 @@ const {
   subtitle = 'Kayak, hidropedales y barcas en plena naturaleza. El pantano te espera.',
   videoSrc = '/assets/videos/hero.mp4',
   fallbackImage = '/assets/images/hero-fallback.jpg',
+  ctaUrl,
+  ctaLabel,
+  ctaSecondaryLabel,
+  ctaSecondaryUrl,
 } = Astro.props;
 ---
 
@@ -46,7 +54,15 @@ const {
 
   <!-- Animated content (React) -->
   <div class="hero-content-wrapper">
-    <HeroAnimated client:load title={title} subtitle={subtitle} />
+    <HeroAnimated
+      client:load
+      title={title}
+      subtitle={subtitle}
+      reserveUrl={ctaUrl}
+      reserveLabel={ctaLabel}
+      reserveSecondaryLabel={ctaSecondaryLabel}
+      reserveSecondaryUrl={ctaSecondaryUrl}
+    />
   </div>
 
   <!-- Scroll indicator -->

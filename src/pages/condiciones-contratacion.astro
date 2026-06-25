@@ -1,6 +1,8 @@
 ---
 import LegalLayout from '../layouts/LegalLayout.astro';
-import { RESERVAS, CONTACTO } from '../config/reservas';
+import { getSiteConfig } from '../lib/cms';
+
+const siteConfig = await getSiteConfig();
 ---
 
 <LegalLayout
@@ -22,7 +24,7 @@ import { RESERVAS, CONTACTO } from '../config/reservas';
   </p>
   <ul>
     <li><strong>Online:</strong> a través del botón "Reservar" del sitio web, que conecta con nuestro sistema de reservas o canal de WhatsApp.</li>
-    <li><strong>Por teléfono:</strong> llamando al {CONTACTO.telefono}.</li>
+    <li><strong>Por teléfono:</strong> llamando al {siteConfig.phone}.</li>
     <li><strong>Presencialmente:</strong> en las instalaciones de Lacwake durante el horario de apertura.</li>
   </ul>
   <p>
@@ -109,6 +111,6 @@ import { RESERVAS, CONTACTO } from '../config/reservas';
   <p>
     Para cualquier consulta sobre estas condiciones, contacta con nosotros en
     <a href="mailto:info@lacwake.es">info@lacwake.es</a> o llamando al
-    <a href={CONTACTO.telefonoUrl}>{CONTACTO.telefono}</a>.
+    <a href={siteConfig.phoneUrl}>{siteConfig.phone}</a>.
   </p>
 </LegalLayout>
