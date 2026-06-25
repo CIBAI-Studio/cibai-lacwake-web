@@ -1,0 +1,149 @@
+---
+import ActivityCard from '../ActivityCard.astro';
+
+const activities = [
+  {
+    title: 'Kayak',
+    description: 'Explora las tranquilas aguas del pantano sobre una embarcación ágil y divertida. Ideal para parejas, grupos de amigos o en familia. No se necesita experiencia previa.',
+    image: '/assets/images/kayak.jpg',
+    imageAlt: 'Personas practicando kayak en el pantano al atardecer',
+    href: '/actividades/kayak',
+    tag: 'Popular',
+    duration: '1-3 horas',
+    minAge: '6',
+  },
+  {
+    title: 'Hidropedales',
+    description: 'Recorre el pantano al ritmo que tú eliges con nuestros hidropedales. La actividad perfecta para toda la familia: cómoda, segura y llena de vistas impresionantes.',
+    image: '/assets/images/hidropedales.jpg',
+    imageAlt: 'Familia disfrutando de hidropedales en el pantano',
+    href: '/actividades/hidropedales',
+    tag: 'Familia',
+    duration: '30-90 min',
+    minAge: '4',
+  },
+  {
+    title: 'Barcas',
+    description: 'Sumérgete en la calma del pantano remando tu propia barca. Una experiencia tranquila y auténtica que conecta con la naturaleza y permite explorar rincones únicos.',
+    image: '/assets/images/barcas.jpg',
+    imageAlt: 'Pareja remando en barca por el pantano rodeados de naturaleza',
+    href: '/actividades/barcas',
+    tag: 'Relajante',
+    duration: '1-2 horas',
+    minAge: '4',
+  },
+];
+---
+
+<section class="activities-section" id="actividades" aria-labelledby="activities-title">
+  <div class="container-site">
+
+    <div class="section-header">
+      <div class="section-label" aria-hidden="true">Qué hacemos</div>
+      <h2 class="section-title" id="activities-title">
+        Actividades para todos
+      </h2>
+      <p class="section-description">
+        Elige tu aventura acuática. Cada actividad está pensada para que vivas
+        una experiencia memorable en un entorno natural único.
+      </p>
+    </div>
+
+    <ul class="activities-grid" role="list">
+      {activities.map((activity) => (
+        <li>
+          <ActivityCard {...activity} />
+        </li>
+      ))}
+    </ul>
+
+  </div>
+</section>
+
+<style>
+  .activities-section {
+    padding-block: 5rem;
+    background: #fafaf9;
+  }
+
+  @media (min-width: 768px) {
+    .activities-section {
+      padding-block: 7rem;
+    }
+  }
+
+  .section-header {
+    text-align: center;
+    max-width: 600px;
+    margin-inline: auto;
+    margin-bottom: 3.5rem;
+  }
+
+  .section-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #0284c7;
+    margin-bottom: 0.75rem;
+  }
+
+  .section-title {
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: #0c0a09;
+    margin: 0 0 1rem;
+  }
+
+  .section-description {
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    color: #57534e;
+    margin: 0;
+  }
+
+  /*
+   * Layout asimétrico: primera tarjeta destacada (span 2 cols de 3),
+   * las dos siguientes comparten la misma fila.
+   * desktop: [Kayak ×2] [Hidropedales]
+   *          [Barcas ×3]
+   * No usamos 3 columnas iguales (pattern genérico prohibido por design-taste-frontend).
+   */
+  .activities-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  @media (min-width: 768px) {
+    .activities-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Primera tarjeta: ocupa ambas columnas en mobile-landscape/tablet */
+    .activities-grid li:first-child {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .activities-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* Primera tarjeta: span 2 de 3 columnas (destacada) */
+    .activities-grid li:first-child {
+      grid-column: span 2;
+    }
+
+    /* Tercera tarjeta ocupa fila completa */
+    .activities-grid li:last-child {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

@@ -1,0 +1,114 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+import { RESERVAS, CONTACTO } from '../config/reservas';
+---
+
+<LegalLayout
+  title="Condiciones de Contratación"
+  description="Condiciones de contratación y reserva de actividades acuáticas en Lacwake."
+  lastUpdated="Junio 2025"
+>
+  <h2>1. Objeto</h2>
+  <p>
+    Las presentes Condiciones de Contratación regulan la relación entre Lacwake
+    (en adelante, "Lacwake" o "el Proveedor") y el cliente que contrata los servicios
+    de actividades acuáticas ofrecidos en el sitio web lacwake.es o directamente en
+    las instalaciones.
+  </p>
+
+  <h2>2. Proceso de reserva</h2>
+  <p>
+    La reserva de actividades en Lacwake se puede realizar:
+  </p>
+  <ul>
+    <li><strong>Online:</strong> a través del botón "Reservar" del sitio web, que conecta con nuestro sistema de reservas o canal de WhatsApp.</li>
+    <li><strong>Por teléfono:</strong> llamando al {CONTACTO.telefono}.</li>
+    <li><strong>Presencialmente:</strong> en las instalaciones de Lacwake durante el horario de apertura.</li>
+  </ul>
+  <p>
+    La reserva quedará confirmada una vez que Lacwake la haya aceptado y el cliente haya
+    recibido la confirmación correspondiente.
+  </p>
+
+  <h2>3. Precios y forma de pago</h2>
+  <p>
+    Los precios de las actividades están disponibles en el sitio web y en las instalaciones
+    de Lacwake. Todos los precios incluyen el IVA vigente.
+  </p>
+  <p>
+    El pago se realiza:
+  </p>
+  <ul>
+    <li>Presencialmente en las instalaciones (efectivo o tarjeta).</li>
+    <li>Online a través del sistema de reservas (tarjeta de crédito/débito).</li>
+  </ul>
+
+  <h2>4. Política de cancelación</h2>
+  <p>
+    El cliente podrá cancelar su reserva sin coste alguno hasta <strong>48 horas antes</strong>
+    de la actividad. Las cancelaciones realizadas con menos de 48 horas de antelación o la
+    no presentación el día de la actividad no darán derecho a reembolso.
+  </p>
+  <p>
+    En caso de condiciones meteorológicas adversas que impidan la realización de la actividad,
+    Lacwake se reserva el derecho de cancelar y ofrecer al cliente la reprogramación de la
+    actividad o el reembolso íntegro del importe pagado.
+  </p>
+
+  <h2>5. Normas de seguridad</h2>
+  <p>
+    El cliente se compromete a cumplir en todo momento las normas de seguridad establecidas
+    por Lacwake:
+  </p>
+  <ul>
+    <li>El uso del chaleco salvavidas es obligatorio para todos los usuarios en todo momento.</li>
+    <li>Los menores de 12 años deberán ir siempre acompañados de un adulto.</li>
+    <li>Está prohibido navegar bajo los efectos del alcohol u otras sustancias.</li>
+    <li>Los usuarios deben seguir las instrucciones del personal de Lacwake.</li>
+    <li>Queda prohibido alejarse de la zona de navegación delimitada.</li>
+  </ul>
+
+  <h2>6. Responsabilidad</h2>
+  <p>
+    Lacwake dispone de los seguros de responsabilidad civil exigidos por la legislación
+    vigente para este tipo de actividades. No obstante, el cliente asume el riesgo inherente
+    a la práctica de actividades acuáticas y se responsabiliza de su propio comportamiento
+    durante la actividad.
+  </p>
+  <p>
+    Lacwake no se hace responsable de los daños derivados del incumplimiento de las normas
+    de seguridad o de las instrucciones del personal por parte del cliente.
+  </p>
+
+  <h2>7. Estado de salud</h2>
+  <p>
+    El cliente declara encontrarse en buen estado de salud y no padecer ninguna enfermedad
+    o discapacidad que le impida realizar la actividad contratada. En caso de duda, se
+    recomienda consultar con un médico antes de realizar la actividad.
+  </p>
+  <p>
+    Lacwake se reserva el derecho de impedir la participación de cualquier persona que,
+    a criterio del personal, no se encuentre en condiciones adecuadas para realizar la
+    actividad de forma segura.
+  </p>
+
+  <h2>8. Protección de datos</h2>
+  <p>
+    Los datos personales facilitados durante el proceso de reserva serán tratados conforme
+    a nuestra <a href="/politica-privacidad">Política de Privacidad</a>.
+  </p>
+
+  <h2>9. Ley aplicable</h2>
+  <p>
+    Las presentes Condiciones de Contratación se rigen por la legislación española.
+    Para cualquier controversia, las partes se someten a los Juzgados y Tribunales de
+    Girona, con renuncia a cualquier otro fuero.
+  </p>
+
+  <h2>10. Contacto</h2>
+  <p>
+    Para cualquier consulta sobre estas condiciones, contacta con nosotros en
+    <a href="mailto:info@lacwake.es">info@lacwake.es</a> o llamando al
+    <a href={CONTACTO.telefonoUrl}>{CONTACTO.telefono}</a>.
+  </p>
+</LegalLayout>

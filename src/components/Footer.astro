@@ -1,0 +1,229 @@
+---
+import { RESERVAS, CONTACTO } from '../config/reservas';
+---
+
+<footer class="site-footer" role="contentinfo">
+  <div class="container-site">
+    <div class="footer-grid">
+
+      <!-- Brand -->
+      <div class="footer-brand">
+        <a href="/" class="footer-logo" aria-label="Lacwake — Inicio">
+          Lacwake
+        </a>
+        <p class="footer-tagline">
+          Actividades acuáticas en el pantano.<br />
+          Kayak, hidropedales y barcas para toda la familia.
+        </p>
+        <a
+          href={RESERVAS.url}
+          class="footer-cta"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {RESERVAS.label}
+        </a>
+      </div>
+
+      <!-- Actividades -->
+      <nav class="footer-col" aria-label="Actividades">
+        <h3 class="footer-col-title">Actividades</h3>
+        <ul role="list">
+          <li><a href="/actividades/kayak">Kayak</a></li>
+          <li><a href="/actividades/hidropedales">Hidropedales</a></li>
+          <li><a href="/actividades/barcas">Barcas</a></li>
+        </ul>
+      </nav>
+
+      <!-- Contacto -->
+      <div class="footer-col">
+        <h3 class="footer-col-title">Contacto</h3>
+        <ul role="list">
+          <li>
+            <a href={CONTACTO.telefonoUrl} aria-label={`Llamar al ${CONTACTO.telefono}`}>
+              {CONTACTO.telefono}
+            </a>
+          </li>
+          <li>
+            <a href={CONTACTO.emailUrl}>{CONTACTO.email}</a>
+          </li>
+          <li>
+            <span class="footer-address">{CONTACTO.direccion}</span>
+          </li>
+          <li>
+            <span class="footer-hours">{CONTACTO.horario}</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Legal -->
+      <nav class="footer-col" aria-label="Legal">
+        <h3 class="footer-col-title">Legal</h3>
+        <ul role="list">
+          <li><a href="/aviso-legal">Aviso legal</a></li>
+          <li><a href="/politica-privacidad">Política de privacidad</a></li>
+          <li><a href="/politica-cookies">Política de cookies</a></li>
+          <li><a href="/condiciones-contratacion">Condiciones de contratación</a></li>
+        </ul>
+      </nav>
+
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="footer-bottom">
+      <p>© {new Date().getFullYear()} Lacwake. Todos los derechos reservados.</p>
+      <p class="footer-bottom-links">
+        <a href="/politica-privacidad">Privacidad</a>
+        <span aria-hidden="true">·</span>
+        <a href="/politica-cookies">Cookies</a>
+        <span aria-hidden="true">·</span>
+        <a href="/aviso-legal">Aviso legal</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: #082f49;
+    color: rgba(255,255,255,0.7);
+    padding-block: 4rem 2rem;
+    margin-top: auto;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    margin-bottom: 3rem;
+  }
+
+  @media (min-width: 640px) {
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .footer-grid {
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+    }
+  }
+
+  .footer-logo {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .footer-tagline {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .footer-cta {
+    display: inline-block;
+    padding: 0.625rem 1.25rem;
+    background: #f59e0b;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 9999px;
+    text-decoration: none;
+    transition: background 200ms ease;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .footer-cta:hover {
+    background: #d97706;
+  }
+
+  .footer-col-title {
+    font-family: var(--font-heading);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 1rem;
+  }
+
+  .footer-col ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .footer-col a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.9375rem;
+    transition: color 150ms ease;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .footer-col a:hover {
+    color: white;
+  }
+
+  .footer-address,
+  .footer-hours {
+    font-size: 0.9375rem;
+    color: rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    text-align: center;
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.4);
+  }
+
+  @media (min-width: 640px) {
+    .footer-bottom {
+      flex-direction: row;
+      justify-content: space-between;
+      text-align: left;
+    }
+  }
+
+  .footer-bottom-links {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .footer-bottom-links a {
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+
+  .footer-bottom-links a:hover {
+    color: rgba(255,255,255,0.8);
+  }
+</style>
