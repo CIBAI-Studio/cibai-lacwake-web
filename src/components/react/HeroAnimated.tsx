@@ -38,6 +38,7 @@ export default function HeroAnimated({
             className="btn-reserve"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={`${RESERVAS.label} — abre en nueva pestaña`}
           >
             {RESERVAS.label}
           </a>

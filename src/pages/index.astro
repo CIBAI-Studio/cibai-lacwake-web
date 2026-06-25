@@ -65,8 +65,9 @@ import { RESERVAS, CONTACTO } from '../config/reservas';
               title: 'Fácil acceso',
               desc: 'A 1 hora de las principales ciudades, con parking gratuito.',
             },
-          ].map(({ title, desc }) => (
+          ].map(({ icon, title, desc }) => (
             <div class="why-feature" role="listitem">
+              <div class="feature-icon" aria-hidden="true">{icon}</div>
               <div class="feature-title">{title}</div>
               <div class="feature-desc">{desc}</div>
             </div>
@@ -199,6 +200,12 @@ import { RESERVAS, CONTACTO } from '../config/reservas';
     background: #f0f9ff;
     border-radius: 1rem;
     border: 1px solid #bae6fd;
+  }
+
+  .feature-icon {
+    font-size: 1.75rem;
+    line-height: 1;
+    margin-bottom: 0.75rem;
   }
 
   .feature-title {
