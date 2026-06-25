@@ -1,0 +1,366 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { RESERVAS } from '../config/reservas';
+
+interface Props {
+  title: string;
+  description: string;
+  image: string;
+  imageAlt: string;
+  tag?: string;
+  duration?: string;
+  minAge?: string;
+  price?: string;
+  included?: string[];
+}
+
+const {
+  title,
+  description,
+  image,
+  imageAlt,
+  tag = 'Actividad',
+  duration,
+  minAge,
+  price,
+  included = [],
+} = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  <!-- Activity Hero -->
+  <div class="activity-hero" style={`padding-top: 5rem;`}>
+    <div class="activity-hero-media">
+      <img
+        src={image}
+        alt={imageAlt}
+        class="activity-hero-img"
+        width="1440"
+        height="700"
+        loading="eager"
+      />
+      <div class="activity-hero-overlay" aria-hidden="true"></div>
+    </div>
+    <div class="activity-hero-content">
+      <div class="container-site">
+        <nav class="breadcrumb" aria-label="Navegación por ruta">
+          <ol role="list">
+            <li><a href="/">Inicio</a></li>
+            <li aria-hidden="true">›</li>
+            <li><a href="/#actividades">Actividades</a></li>
+            <li aria-hidden="true">›</li>
+            <li aria-current="page">{title}</li>
+          </ol>
+        </nav>
+        <span class="activity-tag">{tag}</span>
+        <h1 class="activity-title">{title}</h1>
+        <p class="activity-lead">{description}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content + Sidebar -->
+  <div class="container-site activity-body">
+    <div class="activity-grid">
+      <!-- Main content -->
+      <div class="activity-content">
+        <slot />
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="activity-sidebar" aria-label="Información y reserva">
+        <div class="sidebar-card">
+          <h2 class="sidebar-title">Información</h2>
+
+          {duration && (
+            <div class="sidebar-row">
+              <span class="sidebar-label">Duración</span>
+              <span class="sidebar-value">{duration}</span>
+            </div>
+          )}
+          {minAge && (
+            <div class="sidebar-row">
+              <span class="sidebar-label">Edad mínima</span>
+              <span class="sidebar-value">+{minAge} años</span>
+            </div>
+          )}
+          {price && (
+            <div class="sidebar-row">
+              <span class="sidebar-label">Precio</span>
+              <span class="sidebar-value sidebar-price">{price}</span>
+            </div>
+          )}
+
+          {included.length > 0 && (
+            <div class="sidebar-included">
+              <span class="sidebar-label">Incluye</span>
+              <ul role="list">
+                {included.map(item => (
+                  <li>
+                    <span aria-hidden="true">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <a
+            href={RESERVAS.url}
+            class="sidebar-cta"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {RESERVAS.label}
+          </a>
+          <p class="sidebar-note">Sin tarjeta de crédito. Confirmación inmediata.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .activity-hero {
+    position: relative;
+    min-height: 60dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    background: #082f49;
+  }
+
+  .activity-hero-media {
+    position: absolute;
+    inset: 0;
+  }
+
+  .activity-hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .activity-hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.2) 0%,
+      rgba(0,0,0,0.6) 70%,
+      rgba(0,0,0,0.75) 100%
+    );
+  }
+
+  .activity-hero-content {
+    position: relative;
+    z-index: 10;
+    padding-bottom: 3rem;
+  }
+
+  .breadcrumb ol {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.25rem;
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .breadcrumb a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+
+  .breadcrumb a:hover {
+    color: white;
+  }
+
+  .activity-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: rgba(245,158,11,0.25);
+    border: 1px solid rgba(245,158,11,0.4);
+    color: #fbbf24;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 9999px;
+    margin-bottom: 0.75rem;
+  }
+
+  .activity-title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: white;
+    margin: 0 0 1rem;
+    line-height: 1.1;
+  }
+
+  .activity-lead {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: rgba(255,255,255,0.8);
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0;
+  }
+
+  /* Content grid */
+  .activity-body {
+    padding-block: 4rem;
+  }
+
+  .activity-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .activity-grid {
+      grid-template-columns: 1fr 340px;
+      gap: 4rem;
+    }
+  }
+
+  .activity-content {
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: #292524;
+  }
+
+  .activity-content h2 {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #0c0a09;
+    margin: 2.5rem 0 0.875rem;
+  }
+
+  .activity-content h3 {
+    font-family: var(--font-heading);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #0c0a09;
+    margin: 1.75rem 0 0.5rem;
+  }
+
+  .activity-content p {
+    margin-bottom: 1.25rem;
+  }
+
+  .activity-content ul, .activity-content ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .activity-content li {
+    margin-bottom: 0.4rem;
+  }
+
+  /* Sidebar */
+  .sidebar-card {
+    position: sticky;
+    top: 6rem;
+    background: white;
+    border: 1px solid #e7e5e4;
+    border-radius: 1.25rem;
+    padding: 1.75rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+
+  .sidebar-title {
+    font-family: var(--font-heading);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #0c0a09;
+    margin: 0 0 1.25rem;
+  }
+
+  .sidebar-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-block: 0.6rem;
+    border-bottom: 1px solid #e7e5e4;
+  }
+
+  .sidebar-label {
+    font-size: 0.875rem;
+    color: #a8a29e;
+    font-weight: 500;
+  }
+
+  .sidebar-value {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: #292524;
+  }
+
+  .sidebar-price {
+    color: #0284c7;
+    font-size: 1.125rem;
+  }
+
+  .sidebar-included {
+    padding-top: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .sidebar-included ul {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .sidebar-included li {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.9375rem;
+    color: #292524;
+  }
+
+  .sidebar-included span {
+    color: #10b981;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .sidebar-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 0.875rem;
+    background: #f59e0b;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    text-align: center;
+    transition: background 200ms ease;
+    min-height: 52px;
+  }
+
+  .sidebar-cta:hover {
+    background: #d97706;
+  }
+
+  .sidebar-note {
+    text-align: center;
+    font-size: 0.8125rem;
+    color: #a8a29e;
+    margin: 0.75rem 0 0;
+  }
+</style>
