@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <rect width="1920" height="1080" fill="#082f49"/>
+  <rect y="540" width="1920" height="540" fill="#0369a1" opacity="0.6"/>
+  <text x="960" y="520" font-family="sans-serif" font-size="64" font-weight="bold" fill="white" text-anchor="middle">Lacwake</text>
+  <text x="960" y="590" font-family="sans-serif" font-size="28" fill="rgba(255,255,255,0.7)" text-anchor="middle">Actividades acuáticas en el pantano</text>
+  <text x="960" y="640" font-family="sans-serif" font-size="18" fill="rgba(255,255,255,0.4)" text-anchor="middle">[Placeholder — el Designer entregará el vídeo/imagen real]</text>
+</svg>
