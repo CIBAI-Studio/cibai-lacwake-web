@@ -44,6 +44,16 @@ async function fetchCMS<T>(path: string, fallback: T): Promise<T> {
   }
 }
 
+// The CMS API wraps section content under a `content` key:
+// { section_key, locale, content: { ...fields }, updated_at }
+// This helper fetches a section and returns only the inner `content` object.
+type CmsRow = { content: Record<string, unknown> };
+
+async function fetchSection(path: string): Promise<Record<string, unknown> | null> {
+  const raw = await fetchCMS<CmsRow | null>(path, null);
+  return raw?.content ?? null;
+}
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface HeroContent {
@@ -169,23 +179,70 @@ const FALLBACK_CTA: CtaContent = {
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 export async function getMenu(): Promise<MenuItem[]> {
+  // /api/menu returns an array directly (not wrapped under `content`)
   return fetchCMS<MenuItem[]>('/api/menu', FALLBACK_MENU);
 }
 
 export async function getSiteConfig(): Promise<SiteConfig> {
-  return fetchCMS<SiteConfig>('/api/content/site_config', FALLBACK_SITE_CONFIG);
+  const c = await fetchSection('/api/content/site_config');
+  if (!c) return FALLBACK_SITE_CONFIG;
+  const s = (f: string) => c[f] as string | undefined;
+  return {
+    whatsappUrl: s('whatsapp_url') ?? s('whatsappUrl') ?? FALLBACK_SITE_CONFIG.whatsappUrl,
+    whatsappLabel: s('whatsapp_label') ?? s('whatsappLabel') ?? FALLBACK_SITE_CONFIG.whatsappLabel,
+    whatsappLabelShort: s('whatsapp_label_short') ?? s('whatsappLabelShort') ?? FALLBACK_SITE_CONFIG.whatsappLabelShort,
+    phone: s('phone') ?? FALLBACK_SITE_CONFIG.phone,
+    phoneUrl: s('phone_url') ?? s('phoneUrl') ?? FALLBACK_SITE_CONFIG.phoneUrl,
+    email: s('email') ?? FALLBACK_SITE_CONFIG.email,
+    emailUrl: s('email_url') ?? s('emailUrl') ?? FALLBACK_SITE_CONFIG.emailUrl,
+    address: s('address') ?? FALLBACK_SITE_CONFIG.address,
+    schedule: s('schedule') ?? FALLBACK_SITE_CONFIG.schedule,
+  };
 }
 
 export async function getHeroContent(): Promise<HeroContent> {
-  return fetchCMS<HeroContent>('/api/content/hero', FALLBACK_HERO);
+  const c = await fetchSection('/api/content/hero');
+  if (!c) return FALLBACK_HERO;
+  const s = (f: string) => c[f] as string | undefined;
+  return {
+    title: s('title') ?? FALLBACK_HERO.title,
+    subtitle: s('subtitle') ?? FALLBACK_HERO.subtitle,
+    // Admin field is `video_url`; accept legacy `video_src` / camelCase as well
+    videoUrl: s('video_url') ?? s('video_src') ?? s('videoUrl') ?? FALLBACK_HERO.videoUrl,
+    fallbackImage: s('fallback_image') ?? s('fallbackImage') ?? FALLBACK_HERO.fallbackImage,
+    // Admin fields are `cta_text` / `cta_href`; accept verbose `cta_primary_*` variants too
+    ctaLabel: s('cta_text') ?? s('cta_primary_text') ?? s('ctaLabel') ?? FALLBACK_HERO.ctaLabel,
+    ctaUrl: s('cta_href') ?? s('cta_primary_href') ?? s('ctaUrl') ?? FALLBACK_HERO.ctaUrl,
+    ctaSecondaryLabel: s('cta_secondary_text') ?? s('ctaSecondaryLabel') ?? FALLBACK_HERO.ctaSecondaryLabel,
+    ctaSecondaryUrl: s('cta_secondary_href') ?? s('ctaSecondaryUrl') ?? FALLBACK_HERO.ctaSecondaryUrl,
+  };
 }
 
 export async function getWhyContent(): Promise<WhyContent> {
-  return fetchCMS<WhyContent>('/api/content/why', FALLBACK_WHY);
+  const c = await fetchSection('/api/content/why');
+  if (!c) return FALLBACK_WHY;
+  const s = (f: string) => c[f] as string | undefined;
+  return {
+    label: s('label') ?? FALLBACK_WHY.label,
+    title: s('title') ?? FALLBACK_WHY.title,
+    body1: s('body1') ?? FALLBACK_WHY.body1,
+    body2: s('body2') ?? FALLBACK_WHY.body2,
+    ctaLabel: s('cta_label') ?? s('ctaLabel') ?? FALLBACK_WHY.ctaLabel,
+    features: (c.features as WhyContent['features'] | undefined) ?? FALLBACK_WHY.features,
+  };
 }
 
 export async function getCtaContent(): Promise<CtaContent> {
-  return fetchCMS<CtaContent>('/api/content/cta', FALLBACK_CTA);
+  const c = await fetchSection('/api/content/cta');
+  if (!c) return FALLBACK_CTA;
+  const s = (f: string) => c[f] as string | undefined;
+  return {
+    title: s('title') ?? FALLBACK_CTA.title,
+    body: s('body') ?? FALLBACK_CTA.body,
+    primaryLabel: s('primary_label') ?? s('primaryLabel') ?? FALLBACK_CTA.primaryLabel,
+    secondaryLabel: s('secondary_label') ?? s('secondaryLabel') ?? FALLBACK_CTA.secondaryLabel,
+    secondaryUrl: s('secondary_url') ?? s('secondaryUrl') ?? FALLBACK_CTA.secondaryUrl,
+  };
 }
 
 export async function getActivityContent(slug: string): Promise<ActivityContent | null> {
@@ -221,12 +278,35 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
       body: '',
     },
   };
-  return fetchCMS<ActivityContent | null>(
-    `/api/content/actividad_${slug}`,
-    fallbacks[slug] ?? null,
-  );
+
+  const fb = fallbacks[slug] ?? null;
+  const c = await fetchSection(`/api/content/actividad_${slug}`);
+  if (!c) return fb;
+  const s = (f: string) => c[f] as string | undefined;
+  return {
+    // Admin uses `page_title`; DB seed used `title` — accept both
+    title: s('page_title') ?? s('title') ?? fb?.title ?? '',
+    description: s('description') ?? fb?.description ?? '',
+    tag: s('tag') ?? fb?.tag,
+    duration: s('duration') ?? fb?.duration,
+    minAge: s('min_age') ?? s('minAge') ?? fb?.minAge,
+    price: s('price') ?? fb?.price,
+    // Admin uses `features` (string[]); fallback type uses `included`
+    included: (c.features as string[] | undefined) ?? (c.included as string[] | undefined) ?? fb?.included,
+    body: s('body') ?? fb?.body ?? '',
+  };
 }
 
 export async function getLegalContent(page: string): Promise<LegalContent | null> {
-  return fetchCMS<LegalContent | null>(`/api/content/legal_${page}`, null);
+  // Section keys in the CMS admin: aviso_legal, privacidad, cookies, condiciones
+  // Pages call this as getLegalContent('aviso_legal'), getLegalContent('privacidad'), etc.
+  const c = await fetchSection(`/api/content/${page}`);
+  if (!c) return null;
+  const s = (f: string) => c[f] as string | undefined;
+  return {
+    title: s('title') ?? '',
+    // Admin LegalEditor saves HTML under the `html` field
+    body: s('body') ?? s('html') ?? '',
+    lastUpdated: s('last_updated') ?? s('lastUpdated') ?? '',
+  };
 }
