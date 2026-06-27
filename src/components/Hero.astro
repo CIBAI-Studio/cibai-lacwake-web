@@ -106,9 +106,8 @@ const {
     /* Ocultar imagen si el vídeo se carga correctamente */
   }
 
-  /* Si el vídeo se carga, ocultar el fallback */
-  .hero-video:not([poster]) + .hero-fallback,
-  .hero-video[autoplay] ~ .hero-fallback {
+  /* Ocultar fallback solo si el vídeo no tiene poster (no se cargó) */
+  .hero-video:not([poster]) + .hero-fallback {
     display: none;
   }
 
@@ -257,3 +256,13 @@ const {
     border-color: rgba(255, 255, 255, 0.4);
   }
 </style>
+
+<script>
+  const video = document.querySelector('.hero-video');
+  const fallback = document.querySelector('.hero-fallback');
+  if (video && fallback) {
+    video.addEventListener('canplay', () => {
+      (fallback as HTMLElement).style.display = 'none';
+    });
+  }
+</script>
