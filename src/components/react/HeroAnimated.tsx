@@ -1,10 +1,15 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { RESERVAS } from '../../config/reservas';
 
 interface HeroAnimatedProps {
   title?: string;
   subtitle?: string;
+  reserveUrl?: string;
+  reserveLabel?: string;
+  reserveSecondaryLabel?: string;
+  reserveSecondaryUrl?: string;
 }
+
+const FALLBACK_URL = 'https://wa.me/34600000000?text=Hola%2C%20quiero%20reservar%20una%20actividad%20en%20Lacwake';
 
 const fadeSlideUp = {
   hidden: { opacity: 0, y: 32 },
@@ -23,6 +28,10 @@ const fadeSlideUp = {
 export default function HeroAnimated({
   title = 'Tu aventura empieza en el agua',
   subtitle = 'Kayak, hidropedales y barcas en plena naturaleza. El pantano te espera.',
+  reserveUrl = FALLBACK_URL,
+  reserveLabel = 'Reservar ahora',
+  reserveSecondaryLabel = 'Ver actividades',
+  reserveSecondaryUrl = '/#actividades',
 }: HeroAnimatedProps) {
   const shouldReduce = useReducedMotion();
 
@@ -34,16 +43,16 @@ export default function HeroAnimated({
         <p className="hero-subtitle">{subtitle}</p>
         <div className="hero-actions">
           <a
-            href={RESERVAS.url}
+            href={reserveUrl}
             className="btn-reserve"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`${RESERVAS.label} — abre en nueva pestaña`}
+            aria-label={`${reserveLabel} — abre en nueva pestaña`}
           >
-            {RESERVAS.label}
+            {reserveLabel}
           </a>
-          <a href="/#actividades" className="btn-secondary">
-            Ver actividades
+          <a href={reserveSecondaryUrl} className="btn-secondary">
+            {reserveSecondaryLabel}
           </a>
         </div>
       </div>
@@ -90,16 +99,16 @@ export default function HeroAnimated({
         custom={0.3}
       >
         <a
-          href={RESERVAS.url}
+          href={reserveUrl}
           className="btn-reserve"
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`${RESERVAS.label} — abre en nueva pestaña`}
+          aria-label={`${reserveLabel} — abre en nueva pestaña`}
         >
-          {RESERVAS.label}
+          {reserveLabel}
         </a>
-        <a href="/#actividades" className="btn-secondary">
-          Ver actividades
+        <a href={reserveSecondaryUrl} className="btn-secondary">
+          {reserveSecondaryLabel}
         </a>
       </motion.div>
     </div>

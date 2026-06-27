@@ -1,7 +1,7 @@
 /**
- * URL centralizada del botón "Reservar".
- * Cambiar este valor actualiza todos los CTAs del sitio.
- * Hoy: WhatsApp directo. Futuro: URL plataforma de reservas.
+ * Datos de contacto y reservas — valores estáticos de referencia.
+ * En SSR, estos valores son sustituidos por los del CMS (src/lib/cms.ts).
+ * Se mantienen aquí como fallback de último recurso y para referencia.
  */
 export const RESERVAS = {
   url: 'https://wa.me/34600000000?text=Hola%2C%20quiero%20reservar%20una%20actividad%20en%20Lacwake',
@@ -9,7 +9,6 @@ export const RESERVAS = {
   labelShort: 'Reservar',
 } as const;
 
-/** Datos de contacto centralizados */
 export const CONTACTO = {
   telefono: '+34 600 000 000',
   telefonoUrl: 'tel:+34600000000',

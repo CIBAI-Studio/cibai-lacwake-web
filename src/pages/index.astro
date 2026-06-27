@@ -2,7 +2,29 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import ActivitiesSection from '../components/sections/ActivitiesSection.astro';
-import { RESERVAS, CONTACTO } from '../config/reservas';
+import { getHeroContent, getWhyContent, getCtaContent, getSiteConfig, getActivityContent } from '../lib/cms';
+
+const ACTIVITY_STATIC = {
+  kayak: { image: '/assets/images/kayak.jpg', imageAlt: 'Personas practicando kayak en el pantano al atardecer', href: '/actividades/kayak' },
+  hidropedales: { image: '/assets/images/hidropedales.jpg', imageAlt: 'Familia disfrutando de hidropedales en el pantano', href: '/actividades/hidropedales' },
+  barcas: { image: '/assets/images/barcas.jpg', imageAlt: 'Pareja remando en barca por el pantano rodeados de naturaleza', href: '/actividades/barcas' },
+} as const;
+
+const [hero, why, cta, siteConfig, kayakCms, hidropedalesCms, barcasCms] = await Promise.all([
+  getHeroContent(),
+  getWhyContent(),
+  getCtaContent(),
+  getSiteConfig(),
+  getActivityContent('kayak'),
+  getActivityContent('hidropedales'),
+  getActivityContent('barcas'),
+]);
+
+const activities = [
+  { ...ACTIVITY_STATIC.kayak, title: kayakCms?.title ?? 'Kayak', description: kayakCms?.description ?? '', tag: kayakCms?.tag, duration: kayakCms?.duration, minAge: kayakCms?.minAge },
+  { ...ACTIVITY_STATIC.hidropedales, title: hidropedalesCms?.title ?? 'Hidropedales', description: hidropedalesCms?.description ?? '', tag: hidropedalesCms?.tag, duration: hidropedalesCms?.duration, minAge: hidropedalesCms?.minAge },
+  { ...ACTIVITY_STATIC.barcas, title: barcasCms?.title ?? 'Barcas', description: barcasCms?.description ?? '', tag: barcasCms?.tag, duration: barcasCms?.duration, minAge: barcasCms?.minAge },
+];
 ---
 
 <BaseLayout
@@ -10,62 +32,43 @@ import { RESERVAS, CONTACTO } from '../config/reservas';
   description="Lacwake — Actividades acuáticas en el pantano: kayak, hidropedales y barcas para toda la familia. Reserva ahora y vive la aventura."
 >
   <!-- Hero fullscreen -->
-  <Hero />
+  <Hero
+    title={hero.title}
+    subtitle={hero.subtitle}
+    videoSrc={hero.videoUrl}
+    fallbackImage={hero.fallbackImage}
+    ctaUrl={hero.ctaUrl}
+    ctaLabel={hero.ctaLabel}
+    ctaSecondaryLabel={hero.ctaSecondaryLabel}
+    ctaSecondaryUrl={hero.ctaSecondaryUrl}
+  />
 
   <!-- Actividades -->
-  <ActivitiesSection />
+  <ActivitiesSection activities={activities} />
 
   <!-- Por qué Lacwake -->
   <section class="why-section" aria-labelledby="why-title">
     <div class="container-site">
       <div class="why-grid">
         <div class="why-text">
-          <div class="section-label">Nuestra propuesta</div>
+          <div class="section-label">{why.label}</div>
           <h2 id="why-title" class="why-title">
-            Naturaleza, agua y aventura al alcance de todos
+            {why.title}
           </h2>
-          <p class="why-body">
-            Lacwake nace de la pasión por el agua y la montaña. Nuestro pantano es
-            un paraíso escondido donde el tiempo se detiene: aguas cristalinas,
-            fauna local y paisajes que quitan el aliento.
-          </p>
-          <p class="why-body">
-            Cada actividad está diseñada para que disfrutes al máximo sin importar
-            tu nivel de experiencia. Nuestro equipo te guía y acompaña en todo momento.
-          </p>
+          <p class="why-body">{why.body1}</p>
+          <p class="why-body">{why.body2}</p>
           <a
-            href={RESERVAS.url}
+            href={siteConfig.whatsappUrl}
             class="btn-primary"
             target="_blank"
             rel="noopener noreferrer"
           >
-            {RESERVAS.label}
+            {why.ctaLabel}
           </a>
         </div>
 
         <div class="why-features" role="list">
-          {[
-            {
-              icon: '💧',
-              title: 'Entorno natural único',
-              desc: 'Aguas tranquilas del pantano rodeadas de naturaleza virgen.',
-            },
-            {
-              icon: '👨‍👩‍👧‍👦',
-              title: 'Para toda la familia',
-              desc: 'Actividades adaptadas para niños desde 4 años y mayores.',
-            },
-            {
-              icon: '🛶',
-              title: 'Flota en perfecto estado',
-              desc: 'Equipos modernos, seguros y revisados diariamente.',
-            },
-            {
-              icon: '📍',
-              title: 'Fácil acceso',
-              desc: 'A 1 hora de las principales ciudades, con parking gratuito.',
-            },
-          ].map(({ icon, title, desc }) => (
+          {why.features.map(({ icon, title, desc }) => (
             <div class="why-feature" role="listitem">
               <div class="feature-icon" aria-hidden="true">{icon}</div>
               <div class="feature-title">{title}</div>
@@ -82,28 +85,28 @@ import { RESERVAS, CONTACTO } from '../config/reservas';
     <div class="container-site">
       <div class="cta-box">
         <h2 id="cta-title" class="cta-title">
-          ¿Listo para tu aventura acuática?
+          {cta.title}
         </h2>
         <p class="cta-body">
-          Reserva hoy y asegura tu plaza. Plazas limitadas cada día.
+          {cta.body}
         </p>
         <div class="cta-actions">
           <a
-            href={RESERVAS.url}
+            href={siteConfig.whatsappUrl}
             class="btn-cta-primary"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Reservar ahora
+            {cta.primaryLabel}
           </a>
-          <a href="/contactar" class="btn-cta-secondary">
-            Más información
+          <a href={cta.secondaryUrl} class="btn-cta-secondary">
+            {cta.secondaryLabel}
           </a>
         </div>
         <p class="cta-contact">
           ¿Tienes dudas? Llámanos al{' '}
-          <a href={CONTACTO.telefonoUrl} class="cta-phone">
-            {CONTACTO.telefono}
+          <a href={siteConfig.phoneUrl} class="cta-phone">
+            {siteConfig.phone}
           </a>
         </p>
       </div>
