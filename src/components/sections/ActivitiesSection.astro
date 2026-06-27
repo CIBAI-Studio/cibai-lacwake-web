@@ -1,38 +1,22 @@
 ---
 import ActivityCard from '../ActivityCard.astro';
 
-const activities = [
-  {
-    title: 'Kayak',
-    description: 'Explora las tranquilas aguas del pantano sobre una embarcación ágil y divertida. Ideal para parejas, grupos de amigos o en familia. No se necesita experiencia previa.',
-    image: '/assets/images/kayak.jpg',
-    imageAlt: 'Personas practicando kayak en el pantano al atardecer',
-    href: '/actividades/kayak',
-    tag: 'Popular',
-    duration: '1-3 horas',
-    minAge: '6',
-  },
-  {
-    title: 'Hidropedales',
-    description: 'Recorre el pantano al ritmo que tú eliges con nuestros hidropedales. La actividad perfecta para toda la familia: cómoda, segura y llena de vistas impresionantes.',
-    image: '/assets/images/hidropedales.jpg',
-    imageAlt: 'Familia disfrutando de hidropedales en el pantano',
-    href: '/actividades/hidropedales',
-    tag: 'Familia',
-    duration: '30-90 min',
-    minAge: '4',
-  },
-  {
-    title: 'Barcas',
-    description: 'Sumérgete en la calma del pantano remando tu propia barca. Una experiencia tranquila y auténtica que conecta con la naturaleza y permite explorar rincones únicos.',
-    image: '/assets/images/barcas.jpg',
-    imageAlt: 'Pareja remando en barca por el pantano rodeados de naturaleza',
-    href: '/actividades/barcas',
-    tag: 'Relajante',
-    duration: '1-2 horas',
-    minAge: '4',
-  },
-];
+export interface ActivitySummary {
+  title: string;
+  description: string;
+  image: string;
+  imageAlt: string;
+  href: string;
+  tag?: string;
+  duration?: string;
+  minAge?: string;
+}
+
+interface Props {
+  activities: ActivitySummary[];
+}
+
+const { activities } = Astro.props;
 ---
 
 <section class="activities-section" id="actividades" aria-labelledby="activities-title">

@@ -2,14 +2,29 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import ActivitiesSection from '../components/sections/ActivitiesSection.astro';
-import { getHeroContent, getWhyContent, getCtaContent, getSiteConfig } from '../lib/cms';
+import { getHeroContent, getWhyContent, getCtaContent, getSiteConfig, getActivityContent } from '../lib/cms';
 
-const [hero, why, cta, siteConfig] = await Promise.all([
+const ACTIVITY_STATIC = {
+  kayak: { image: '/assets/images/kayak.jpg', imageAlt: 'Personas practicando kayak en el pantano al atardecer', href: '/actividades/kayak' },
+  hidropedales: { image: '/assets/images/hidropedales.jpg', imageAlt: 'Familia disfrutando de hidropedales en el pantano', href: '/actividades/hidropedales' },
+  barcas: { image: '/assets/images/barcas.jpg', imageAlt: 'Pareja remando en barca por el pantano rodeados de naturaleza', href: '/actividades/barcas' },
+} as const;
+
+const [hero, why, cta, siteConfig, kayakCms, hidropedalesCms, barcasCms] = await Promise.all([
   getHeroContent(),
   getWhyContent(),
   getCtaContent(),
   getSiteConfig(),
+  getActivityContent('kayak'),
+  getActivityContent('hidropedales'),
+  getActivityContent('barcas'),
 ]);
+
+const activities = [
+  { ...ACTIVITY_STATIC.kayak, title: kayakCms?.title ?? 'Kayak', description: kayakCms?.description ?? '', tag: kayakCms?.tag, duration: kayakCms?.duration, minAge: kayakCms?.minAge },
+  { ...ACTIVITY_STATIC.hidropedales, title: hidropedalesCms?.title ?? 'Hidropedales', description: hidropedalesCms?.description ?? '', tag: hidropedalesCms?.tag, duration: hidropedalesCms?.duration, minAge: hidropedalesCms?.minAge },
+  { ...ACTIVITY_STATIC.barcas, title: barcasCms?.title ?? 'Barcas', description: barcasCms?.description ?? '', tag: barcasCms?.tag, duration: barcasCms?.duration, minAge: barcasCms?.minAge },
+];
 ---
 
 <BaseLayout
@@ -29,7 +44,7 @@ const [hero, why, cta, siteConfig] = await Promise.all([
   />
 
   <!-- Actividades -->
-  <ActivitiesSection />
+  <ActivitiesSection activities={activities} />
 
   <!-- Por qué Lacwake -->
   <section class="why-section" aria-labelledby="why-title">

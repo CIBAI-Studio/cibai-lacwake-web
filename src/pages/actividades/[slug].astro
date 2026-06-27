@@ -1,38 +1,27 @@
 ---
 import ActivityLayout from '../../layouts/ActivityLayout.astro';
 
-export function getStaticPaths() {
-  // Actividades futuras: añadir aquí nuevas entradas
-  return [
-    {
-      params: { slug: 'sup' },
-      props: {
-        title: 'Stand Up Paddle (SUP)',
-        description: 'Descubre el SUP en el pantano: equilibrio, fuerza y naturaleza en una sola actividad. Próximamente en Lacwake.',
-        tag: 'Próximamente',
-        comingSoon: true,
-      },
-    },
-    {
-      params: { slug: 'snorkel' },
-      props: {
-        title: 'Snorkel',
-        description: 'Explora el fondo del pantano con nuestra actividad de snorkel guiado. Próximamente en Lacwake.',
-        tag: 'Próximamente',
-        comingSoon: true,
-      },
-    },
-  ];
+const VALID_SLUGS: Record<string, { title: string; description: string; tag: string; comingSoon: boolean }> = {
+  sup: {
+    title: 'Stand Up Paddle (SUP)',
+    description: 'Descubre el SUP en el pantano: equilibrio, fuerza y naturaleza en una sola actividad. Próximamente en Lacwake.',
+    tag: 'Próximamente',
+    comingSoon: true,
+  },
+  snorkel: {
+    title: 'Snorkel',
+    description: 'Explora el fondo del pantano con nuestra actividad de snorkel guiado. Próximamente en Lacwake.',
+    tag: 'Próximamente',
+    comingSoon: true,
+  },
+};
+
+const { slug } = Astro.params;
+if (!slug || !(slug in VALID_SLUGS)) {
+  return Astro.redirect('/404', 302);
 }
 
-interface Props {
-  title: string;
-  description: string;
-  tag?: string;
-  comingSoon?: boolean;
-}
-
-const { title, description, tag = 'Actividad', comingSoon = false } = Astro.props;
+const { title, description, tag, comingSoon } = VALID_SLUGS[slug];
 ---
 
 <ActivityLayout
