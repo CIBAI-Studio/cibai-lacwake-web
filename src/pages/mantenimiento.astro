@@ -1,0 +1,118 @@
+---
+// Página de mantenimiento — servida cuando el CMS tiene maintenance.enabled = true
+// El middleware reescribe todas las rutas aquí mientras está activo.
+Astro.response.status = 503;
+Astro.response.headers.set('Retry-After', '3600');
+---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mantenimiento — LacWake</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            accent: "#06B6D4",
+            "accent-bright": "#00E5FF",
+            "accent-dim": "#0891B2",
+            "accent-text": "#0E7490",
+            background: "#FAFAFA",
+            surface: "#FFFFFF",
+            foreground: "#0A0A0A",
+            subtle: "#525252",
+            muted: "#A3A3A3",
+            border: "#E5E5E5",
+          },
+          fontFamily: {
+            mono: ["JetBrains Mono", "monospace"],
+            sans: ["Inter", "system-ui", "sans-serif"],
+          },
+          borderRadius: {
+            DEFAULT: "4px",
+            sm: "2px",
+            md: "4px",
+            lg: "4px",
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    body { background-color: #FAFAFA; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    .cursor-blink { animation: blink 1.2s step-end infinite; }
+    .scanlines::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.015) 2px, rgba(0,0,0,0.015) 4px);
+      pointer-events: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body class="scanlines bg-background min-h-screen flex flex-col items-center justify-center px-4 py-12">
+
+  <div class="w-full max-w-lg">
+
+    <div class="flex items-center gap-3 mb-8">
+      <div class="w-10 h-10 bg-accent flex items-center justify-center flex-shrink-0" style="border-radius: 4px;">
+        <span class="font-mono font-black text-foreground text-sm tracking-tighter select-none" aria-hidden="true">LW</span>
+      </div>
+      <div>
+        <p class="font-mono font-bold text-xl text-foreground leading-none tracking-widest uppercase">
+          Lac<span class="text-accent-dim">Wake</span>
+        </p>
+        <p class="font-mono text-xs text-muted tracking-widest uppercase mt-0.5">Berguedà Nautic</p>
+      </div>
+    </div>
+
+    <div class="border-t border-border mb-8"></div>
+
+    <div class="inline-flex items-center gap-2 border border-border px-3 py-1.5 mb-6" style="border-radius: 4px;">
+      <span class="w-2 h-2 rounded-full bg-accent inline-block" aria-hidden="true"></span>
+      <span class="font-mono text-xs text-accent-text uppercase tracking-widest font-bold">Mantenimiento</span>
+    </div>
+
+    <h1 class="font-mono font-bold text-foreground mb-2" style="font-size: clamp(1.5rem, 5vw, 2.25rem); line-height: 1.15;">
+      Estamos trabajando<br />en ello.
+    </h1>
+    <p class="font-mono text-subtle text-base md:text-lg mb-8">
+      Volvemos en breve<span class="cursor-blink">_</span>
+    </p>
+
+    <a
+      href="https://reservas.lacwake.es"
+      class="inline-flex items-center gap-2 bg-accent text-foreground font-mono font-bold text-sm px-6 py-3 border border-foreground hover:bg-accent-bright transition-colors duration-150 mb-8"
+      style="border-radius: 4px; text-decoration: none;"
+    >
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+        <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"/>
+      </svg>
+      Ir a reservas.lacwake.es
+    </a>
+
+    <div class="border-t border-border mb-6"></div>
+
+    <p class="font-sans text-sm text-subtle">
+      ¿Necesitas ayuda?
+      <a href="mailto:info@lacwake.es" class="font-mono text-accent-text hover:text-accent-dim underline underline-offset-2 transition-colors duration-150">
+        info@lacwake.es
+      </a>
+    </p>
+
+  </div>
+
+  <p class="absolute bottom-4 right-4 font-mono text-xs text-muted select-none" aria-hidden="true">
+    LacWake &copy; 2026
+  </p>
+
+</body>
+</html>
