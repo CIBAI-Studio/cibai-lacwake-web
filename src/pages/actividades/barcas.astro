@@ -1,22 +1,28 @@
 ---
 import ActivityLayout from '../../layouts/ActivityLayout.astro';
+import { getActivityContent } from '../../lib/cms';
+
+const cms = await getActivityContent('barcas');
+const title = cms?.title ?? 'Barcas a remos';
+const description = cms?.description ?? 'Una experiencia auténtica y tranquila: rema tu propia barca por el pantano y conecta con la naturaleza a tu propio ritmo. Perfecta para descubrir rincones únicos.';
+const tag = cms?.tag ?? 'Relajante';
+const duration = cms?.duration ?? '1 – 3 horas';
+const minAge = cms?.minAge ?? '4';
+const price = cms?.price ?? 'Desde 8 €/h';
+const included = cms?.included ?? ['Barca a remos (2-4 plazas)', 'Remos y accesorios', 'Chalecos salvavidas', 'Instrucciones básicas de remo'];
+const cmsBody = cms?.body ?? '';
 ---
 
 <ActivityLayout
-  title="Barcas a remos"
-  description="Una experiencia auténtica y tranquila: rema tu propia barca por el pantano y conecta con la naturaleza a tu propio ritmo. Perfecta para descubrir rincones únicos."
+  title={title}
+  description={description}
   image="/assets/images/barcas.jpg"
   imageAlt="Pareja remando en una barca de madera por el pantano al atardecer"
-  tag="Relajante"
-  duration="1 – 3 horas"
-  minAge="4"
-  price="Desde 8 €/h"
-  included={[
-    'Barca a remos (2-4 plazas)',
-    'Remos y accesorios',
-    'Chalecos salvavidas',
-    'Instrucciones básicas de remo',
-  ]}
+  tag={tag}
+  duration={duration}
+  minAge={minAge}
+  price={price}
+  included={included}
 >
 
   <h2>La experiencia más auténtica del pantano</h2>
@@ -68,5 +74,7 @@ import ActivityLayout from '../../layouts/ActivityLayout.astro';
     luz es espectacular y el pantano está más tranquilo) o al atardecer. En ambas horas
     la fauna es más activa y el ambiente más mágico.
   </p>
+
+  {cmsBody && <Fragment set:html={cmsBody} />}
 
 </ActivityLayout>

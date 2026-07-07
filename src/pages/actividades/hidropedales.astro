@@ -1,22 +1,28 @@
 ---
 import ActivityLayout from '../../layouts/ActivityLayout.astro';
+import { getActivityContent } from '../../lib/cms';
+
+const cms = await getActivityContent('hidropedales');
+const title = cms?.title ?? 'Hidropedales';
+const description = cms?.description ?? 'La actividad perfecta para toda la familia: cómoda, divertida y llena de naturaleza. Pedalea a tu ritmo y descubre los rincones más bonitos del pantano.';
+const tag = cms?.tag ?? 'Familiar';
+const duration = cms?.duration ?? '30 min – 2 horas';
+const minAge = cms?.minAge ?? '4';
+const price = cms?.price ?? 'Desde 10 €/h';
+const included = cms?.included ?? ['Hidropedal (2-4 plazas)', 'Chalecos salvavidas', 'Instrucciones de uso', 'Asistencia en todo momento'];
+const cmsBody = cms?.body ?? '';
 ---
 
 <ActivityLayout
-  title="Hidropedales"
-  description="La actividad perfecta para toda la familia: cómoda, divertida y llena de naturaleza. Pedalea a tu ritmo y descubre los rincones más bonitos del pantano."
+  title={title}
+  description={description}
   image="/assets/images/hidropedales.jpg"
   imageAlt="Familia disfrutando de los hidropedales en el pantano en un día soleado"
-  tag="Familiar"
-  duration="30 min – 2 horas"
-  minAge="4"
-  price="Desde 10 €/h"
-  included={[
-    'Hidropedal (2-4 plazas)',
-    'Chalecos salvavidas',
-    'Instrucciones de uso',
-    'Asistencia en todo momento',
-  ]}
+  tag={tag}
+  duration={duration}
+  minAge={minAge}
+  price={price}
+  included={included}
 >
 
   <h2>La actividad más popular para familias</h2>
@@ -67,5 +73,7 @@ import ActivityLayout from '../../layouts/ActivityLayout.astro';
     <li>Los niños pequeños deben sentarse siempre en el asiento designado, nunca de pie.</li>
     <li>Lleva un cambio de ropa si vienes con los más pequeños.</li>
   </ul>
+
+  {cmsBody && <Fragment set:html={cmsBody} />}
 
 </ActivityLayout>

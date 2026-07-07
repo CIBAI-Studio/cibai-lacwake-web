@@ -1,8 +1,71 @@
 ---
 // Página de mantenimiento — servida cuando el CMS tiene maintenance.enabled = true
 // El middleware reescribe todas las rutas aquí mientras está activo.
+// Los textos (title, message, eta, contact) se leen del CMS; si el CMS no
+// responde o los campos vienen vacíos, se renderiza el contenido estático.
 Astro.response.status = 503;
 Astro.response.headers.set('Retry-After', '3600');
+
+const CMS_API_URL = import.meta.env.CMS_API_URL ?? '';
+const MAX_FIELD_LENGTH = 500;
+
+// Solo texto plano: Astro escapa las expresiones al renderizar, aquí solo
+// normalizamos y limitamos longitud para que un CMS comprometido no rompa el layout
+function asPlainText(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const text = value.trim();
+  if (!text) return null;
+  return text.length > MAX_FIELD_LENGTH ? `${text.slice(0, MAX_FIELD_LENGTH)}…` : text;
+}
+
+let title: string | null = null;
+let message: string | null = null;
+let eta: string | null = null;
+let contact: string | null = null;
+
+if (CMS_API_URL) {
+  try {
+    const res = await fetch(`${CMS_API_URL}/api/maintenance`, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(3000),
+    });
+    if (res.ok) {
+      const data = (await res.json()) as Record<string, unknown>;
+      title = asPlainText(data.title);
+      message = asPlainText(data.message);
+      eta = asPlainText(data.eta);
+      contact = asPlainText(data.contact);
+    }
+  } catch {
+    // CMS caído o lento: se mantiene el contenido estático
+  }
+}
+
+// La ETA puede llegar como fecha ISO o como texto libre
+let etaText: string | null = null;
+if (eta) {
+  const parsed = new Date(eta);
+  if (Number.isNaN(parsed.getTime())) {
+    etaText = eta;
+  } else {
+    const hasTime = /[T ]\d{1,2}:/.test(eta);
+    etaText = new Intl.DateTimeFormat('es-ES', {
+      dateStyle: 'long',
+      ...(hasTime ? { timeStyle: 'short' as const } : {}),
+      timeZone: 'Europe/Madrid',
+    }).format(parsed);
+  }
+}
+
+const contactIsEmail = contact !== null && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact);
+const contactIsPhone = contact !== null && /^\+?[\d\s()-]{6,20}$/.test(contact);
+const contactHref = contact === null
+  ? null
+  : contactIsEmail
+    ? `mailto:${contact}`
+    : contactIsPhone
+      ? `tel:${contact.replace(/[\s()-]/g, '')}`
+      : null;
 ---
 <!DOCTYPE html>
 <html lang="es">
@@ -82,11 +145,16 @@ Astro.response.headers.set('Retry-After', '3600');
     </div>
 
     <h1 class="font-mono font-bold text-foreground mb-2" style="font-size: clamp(1.5rem, 5vw, 2.25rem); line-height: 1.15;">
-      Estamos trabajando<br />en ello.
+      {title ? title : <>Estamos trabajando<br />en ello.</>}
     </h1>
-    <p class="font-mono text-subtle text-base md:text-lg mb-8">
-      Volvemos en breve<span class="cursor-blink">_</span>
+    <p class:list={["font-mono text-subtle text-base md:text-lg whitespace-pre-line", etaText ? "mb-3" : "mb-8"]}>
+      {message ? message : 'Volvemos en breve'}<span class="cursor-blink">_</span>
     </p>
+    {etaText && (
+      <p class="font-mono text-sm text-subtle mb-8">
+        <span class="text-accent-text font-bold uppercase tracking-widest text-xs">Vuelta estimada:</span> {etaText}
+      </p>
+    )}
 
     <a
       href="https://reservas.lacwake.es"
@@ -103,9 +171,19 @@ Astro.response.headers.set('Retry-After', '3600');
 
     <p class="font-sans text-sm text-subtle">
       ¿Necesitas ayuda?
-      <a href="mailto:info@lacwake.es" class="font-mono text-accent-text hover:text-accent-dim underline underline-offset-2 transition-colors duration-150">
-        info@lacwake.es
-      </a>
+      {contact ? (
+        contactHref ? (
+          <a href={contactHref} class="font-mono text-accent-text hover:text-accent-dim underline underline-offset-2 transition-colors duration-150">
+            {contact}
+          </a>
+        ) : (
+          <span class="font-mono text-accent-text">{contact}</span>
+        )
+      ) : (
+        <a href="mailto:info@lacwake.es" class="font-mono text-accent-text hover:text-accent-dim underline underline-offset-2 transition-colors duration-150">
+          info@lacwake.es
+        </a>
+      )}
     </p>
 
   </div>

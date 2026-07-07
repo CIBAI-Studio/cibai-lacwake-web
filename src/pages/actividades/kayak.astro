@@ -1,23 +1,28 @@
 ---
 import ActivityLayout from '../../layouts/ActivityLayout.astro';
+import { getActivityContent } from '../../lib/cms';
+
+const cms = await getActivityContent('kayak');
+const title = cms?.title ?? 'Kayak';
+const description = cms?.description ?? 'Descubre el pantano desde el agua a bordo de nuestros kayaks. Una experiencia única de aventura y naturaleza accesible para todos los niveles.';
+const tag = cms?.tag ?? 'Popular';
+const duration = cms?.duration ?? '1 – 3 horas';
+const minAge = cms?.minAge ?? '6';
+const price = cms?.price ?? 'Desde 12 €/h';
+const included = cms?.included ?? ['Kayak (individual o doble)', 'Chaleco salvavidas', 'Remo y accesorios', 'Briefing de seguridad', 'Asistencia en agua'];
+const cmsBody = cms?.body ?? '';
 ---
 
 <ActivityLayout
-  title="Kayak"
-  description="Descubre el pantano desde el agua a bordo de nuestros kayaks. Una experiencia única de aventura y naturaleza accesible para todos los niveles."
+  title={title}
+  description={description}
   image="/assets/images/kayak.jpg"
   imageAlt="Persona practicando kayak en aguas tranquilas del pantano al amanecer"
-  tag="Popular"
-  duration="1 – 3 horas"
-  minAge="6"
-  price="Desde 12 €/h"
-  included={[
-    'Kayak (individual o doble)',
-    'Chaleco salvavidas',
-    'Remo y accesorios',
-    'Briefing de seguridad',
-    'Asistencia en agua',
-  ]}
+  tag={tag}
+  duration={duration}
+  minAge={minAge}
+  price={price}
+  included={included}
 >
 
   <h2>¿Qué es el kayak en Lacwake?</h2>
@@ -70,5 +75,7 @@ import ActivityLayout from '../../layouts/ActivityLayout.astro';
     <li>Agua y snacks si planeas una salida larga.</li>
     <li>Ganas de disfrutar.</li>
   </ul>
+
+  {cmsBody && <Fragment set:html={cmsBody} />}
 
 </ActivityLayout>

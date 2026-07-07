@@ -1,5 +1,7 @@
 ---
-import { RESERVAS, CONTACTO } from '../config/reservas';
+import { getSiteConfig } from '../lib/cms';
+
+const siteConfig = await getSiteConfig();
 ---
 
 <footer class="site-footer" role="contentinfo">
@@ -16,12 +18,12 @@ import { RESERVAS, CONTACTO } from '../config/reservas';
           Kayak, hidropedales y barcas para toda la familia.
         </p>
         <a
-          href={RESERVAS.url}
+          href={siteConfig.whatsappUrl}
           class="footer-cta"
           target="_blank"
           rel="noopener noreferrer"
         >
-          {RESERVAS.label}
+          {siteConfig.whatsappLabel}
         </a>
       </div>
 
@@ -40,18 +42,18 @@ import { RESERVAS, CONTACTO } from '../config/reservas';
         <h3 class="footer-col-title">Contacto</h3>
         <ul role="list">
           <li>
-            <a href={CONTACTO.telefonoUrl} aria-label={`Llamar al ${CONTACTO.telefono}`}>
-              {CONTACTO.telefono}
+            <a href={siteConfig.phoneUrl} aria-label={`Llamar al ${siteConfig.phone}`}>
+              {siteConfig.phone}
             </a>
           </li>
           <li>
-            <a href={CONTACTO.emailUrl}>{CONTACTO.email}</a>
+            <a href={siteConfig.emailUrl}>{siteConfig.email}</a>
           </li>
           <li>
-            <span class="footer-address">{CONTACTO.direccion}</span>
+            <span class="footer-address">{siteConfig.address}</span>
           </li>
           <li>
-            <span class="footer-hours">{CONTACTO.horario}</span>
+            <span class="footer-hours">{siteConfig.schedule}</span>
           </li>
         </ul>
       </div>
