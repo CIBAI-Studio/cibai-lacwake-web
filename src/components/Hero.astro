@@ -14,9 +14,9 @@ interface Props {
 
 const {
   title = 'Tu aventura empieza en el agua',
-  subtitle = 'Kayak, hidropedales y barcas en plena naturaleza. El pantano te espera.',
-  videoSrc = '/assets/videos/hero.mp4',
-  fallbackImage = '/assets/images/hero-fallback.jpg',
+  subtitle = 'Kayak, wake, esquí náutico y paseos en el embalse de la Baells. El pantano te espera.',
+  videoSrc = '/assets/redesign/hero-baells.mp4',
+  fallbackImage = '/assets/redesign/wakeboard.webp',
   ctaUrl,
   ctaLabel,
   ctaSecondaryLabel,
@@ -190,13 +190,14 @@ const {
 
   .hero-title {
     font-family: var(--font-heading);
-    font-size: clamp(2.25rem, 6vw, 5rem);
+    font-size: clamp(2.5rem, 7.5vw, 5.75rem);
     font-weight: 700;
-    line-height: 1.08;
+    line-height: 1.02;
     color: white;
-    letter-spacing: -0.03em;
-    max-width: 700px;
+    letter-spacing: -0.035em;
+    max-width: 780px;
     margin: 0;
+    text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
   }
 
   .hero-subtitle {

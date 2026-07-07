@@ -1,0 +1,235 @@
+---
+/**
+ * Tarjeta de actividad para la home rediseñada (CIBA-2173).
+ * Estética moderna/brutal: imagen 16:9 a sangre, overlay oscuro, tipografía
+ * grande, chip de familia y CTA Reservar → WhatsApp. Motion sutil en hover.
+ */
+import { waLink, type Activity } from '../config/actividades';
+
+interface Props {
+  activity: Activity;
+  /** URL base de WhatsApp (del CMS/siteConfig) para construir el deep-link. */
+  whatsappUrl: string;
+  /** Tarjeta destacada (ocupa más espacio en la grid). */
+  featured?: boolean;
+}
+
+const { activity, whatsappUrl, featured = false } = Astro.props;
+const reserveUrl = waLink(whatsappUrl, activity.name);
+const external = activity.href.startsWith('http');
+---
+
+<article class:list={['tile', { 'tile--featured': featured }]}>
+  <a
+    href={activity.href}
+    class="tile-media-link"
+    aria-label={`Ver ${activity.name}`}
+    {...external ? { target: '_blank', rel: 'noopener noreferrer' } : {}}
+  >
+    <div class="tile-media">
+      <img
+        src={activity.image}
+        alt={activity.imageAlt}
+        class="tile-img"
+        width="960"
+        height="540"
+        loading="lazy"
+        decoding="async"
+      />
+      <div class="tile-scrim" aria-hidden="true"></div>
+    </div>
+  </a>
+
+  <div class="tile-body">
+    <span class="tile-tag">{activity.tag}</span>
+    <h3 class="tile-title">
+      <a
+        href={activity.href}
+        class="tile-title-link"
+        {...external ? { target: '_blank', rel: 'noopener noreferrer' } : {}}
+        >{activity.name}</a
+      >
+    </h3>
+    <p class="tile-blurb">{activity.blurb}</p>
+    <div class="tile-actions">
+      <a
+        href={reserveUrl}
+        class="tile-cta"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Reservar ${activity.name} por WhatsApp — abre en nueva pestaña`}
+      >
+        Reservar
+        <span class="tile-cta-arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</article>
+
+<style>
+  .tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    background: #0c1620;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    transition: transform 260ms ease, border-color 260ms ease,
+      box-shadow 260ms ease;
+    height: 100%;
+  }
+
+  .tile:hover {
+    transform: translateY(-6px);
+    border-color: rgba(245, 158, 11, 0.45);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5);
+  }
+
+  .tile-media-link {
+    display: block;
+    text-decoration: none;
+  }
+
+  .tile-media {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: #0a1119;
+  }
+
+  .tile-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  .tile:hover .tile-img {
+    transform: scale(1.06);
+  }
+
+  .tile-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(8, 12, 18, 0.85) 0%,
+      rgba(8, 12, 18, 0.15) 45%,
+      rgba(8, 12, 18, 0) 100%
+    );
+  }
+
+  .tile-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.35rem 1.4rem 1.5rem;
+    flex: 1;
+  }
+
+  .tile-tag {
+    align-self: flex-start;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.14);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    padding: 0.25rem 0.7rem;
+    border-radius: 9999px;
+  }
+
+  .tile-title {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: #ffffff;
+  }
+
+  .tile-title-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 150ms ease;
+  }
+
+  .tile-title-link:hover {
+    color: #fbbf24;
+  }
+
+  .tile-blurb {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: rgba(226, 232, 240, 0.75);
+    margin: 0;
+    flex: 1;
+  }
+
+  .tile-actions {
+    margin-top: 0.4rem;
+  }
+
+  .tile-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1.4rem;
+    background: #f59e0b;
+    color: #0c0a09;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 9999px;
+    text-decoration: none;
+    min-height: 44px;
+    transition: background 180ms ease, gap 180ms ease;
+  }
+
+  .tile-cta:hover {
+    background: #fbbf24;
+    gap: 0.65rem;
+  }
+
+  .tile-cta-arrow {
+    transition: transform 180ms ease;
+  }
+
+  .tile-cta:hover .tile-cta-arrow {
+    transform: translateX(3px);
+  }
+
+  /* Tarjeta destacada: título aún más grande en pantallas amplias */
+  @media (min-width: 1024px) {
+    .tile--featured .tile-title {
+      font-size: 1.85rem;
+    }
+
+    .tile--featured .tile-blurb {
+      font-size: 1.02rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tile,
+    .tile-img,
+    .tile-cta,
+    .tile-cta-arrow {
+      transition: none;
+    }
+
+    .tile:hover {
+      transform: none;
+    }
+
+    .tile:hover .tile-img {
+      transform: none;
+    }
+  }
+</style>
