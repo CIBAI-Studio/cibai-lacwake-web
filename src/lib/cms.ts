@@ -145,9 +145,11 @@ const FALLBACK_SITE_CONFIG: SiteConfig = {
 
 const FALLBACK_HERO: HeroContent = {
   title: 'Tu aventura empieza en el agua',
-  subtitle: 'Kayak, hidropedales y barcas en plena naturaleza. El pantano te espera.',
-  videoUrl: '/assets/videos/hero.mp4',
-  fallbackImage: '/assets/images/hero-fallback.jpg',
+  subtitle: 'Kayak, wake, esquí náutico y paseos en el embalse de la Baells. El pantano te espera.',
+  // Assets rediseño (CIBA-2172): vídeo hero cinematográfico + poster coherente.
+  // El Board puede sobrescribir video_url desde admin.lacwake.es; esto es el fallback local.
+  videoUrl: '/assets/redesign/hero-baells.mp4',
+  fallbackImage: '/assets/redesign/wakeboard.webp',
   ctaLabel: 'Reservar ahora',
   ctaUrl: FALLBACK_SITE_CONFIG.whatsappUrl,
   ctaSecondaryLabel: 'Ver actividades',

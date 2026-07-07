@@ -1,133 +1,209 @@
 ---
-import ActivityCard from '../ActivityCard.astro';
-
-export interface ActivitySummary {
-  title: string;
-  description: string;
-  image: string;
-  imageAlt: string;
-  href: string;
-  tag?: string;
-  duration?: string;
-  minAge?: string;
-}
+/**
+ * Sección de actividades — home rediseñada (CIBA-2173).
+ * Muestra las 11 actividades del catálogo real de reservas.lacwake.es,
+ * agrupadas por familia (Kayak / Wake & Esquí / Paseos & Paddle).
+ * Estética moderna/brutal: fondo oscuro, tipografía display grande,
+ * números de familia sobredimensionados, grid asimétrico.
+ */
+import ActivityTile from '../ActivityTile.astro';
+import { ACTIVITY_FAMILIES, ACTIVITY_COUNT } from '../../config/actividades';
 
 interface Props {
-  activities: ActivitySummary[];
+  /** URL base de WhatsApp (del CMS/siteConfig) para los botones Reservar. */
+  whatsappUrl: string;
 }
 
-const { activities } = Astro.props;
+const { whatsappUrl } = Astro.props;
 ---
 
-<section class="activities-section" id="actividades" aria-labelledby="activities-title">
+<section class="activities" id="actividades" aria-labelledby="activities-title">
   <div class="container-site">
-
-    <div class="section-header">
-      <div class="section-label" aria-hidden="true">Qué hacemos</div>
-      <h2 class="section-title" id="activities-title">
-        Actividades para todos
+    <header class="activities-head">
+      <div class="activities-label">Catálogo completo</div>
+      <h2 class="activities-title" id="activities-title">
+        {ACTIVITY_COUNT} formas de vivir el agua
       </h2>
-      <p class="section-description">
-        Elige tu aventura acuática. Cada actividad está pensada para que vivas
-        una experiencia memorable en un entorno natural único.
+      <p class="activities-lead">
+        Del kayak tranquilo al wakeboard más intenso. Elige tu actividad en el
+        embalse de la Baells y reserva por WhatsApp en un clic.
       </p>
-    </div>
+    </header>
 
-    <ul class="activities-grid" role="list">
-      {activities.map((activity) => (
-        <li>
-          <ActivityCard {...activity} />
-        </li>
-      ))}
-    </ul>
+    {ACTIVITY_FAMILIES.map((family) => (
+      <div class="family" aria-labelledby={`family-${family.id}`}>
+        <div class="family-head">
+          <span class="family-index" aria-hidden="true">{family.index}</span>
+          <div class="family-heading">
+            <div class="family-label">{family.label}</div>
+            <h3 class="family-title" id={`family-${family.id}`}>{family.title}</h3>
+            <p class="family-desc">{family.description}</p>
+          </div>
+        </div>
 
+        <ul class:list={['family-grid', `family-grid--${family.activities.length}`]} role="list">
+          {family.activities.map((activity, i) => (
+            <li>
+              <ActivityTile
+                activity={activity}
+                whatsappUrl={whatsappUrl}
+                featured={family.activities.length === 3 && i === 0}
+              />
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
   </div>
 </section>
 
 <style>
-  .activities-section {
+  .activities {
     padding-block: 5rem;
-    background: #fafaf9;
+    background: #060b12;
+    background-image: radial-gradient(
+      120% 80% at 50% -10%,
+      rgba(2, 132, 199, 0.14) 0%,
+      rgba(6, 11, 18, 0) 60%
+    );
+    color: #e2e8f0;
+    overflow: hidden;
   }
 
   @media (min-width: 768px) {
-    .activities-section {
+    .activities {
       padding-block: 7rem;
     }
   }
 
-  .section-header {
-    text-align: center;
-    max-width: 600px;
-    margin-inline: auto;
+  .activities-head {
+    max-width: 640px;
     margin-bottom: 3.5rem;
   }
 
-  .section-label {
+  .activities-label {
     font-size: 0.8125rem;
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: #0284c7;
-    margin-bottom: 0.75rem;
+    color: #38bdf8;
+    margin-bottom: 0.9rem;
   }
 
-  .section-title {
-    font-size: clamp(1.75rem, 4vw, 2.75rem);
+  .activities-title {
+    font-family: var(--font-heading);
+    font-size: clamp(2rem, 6vw, 3.75rem);
     font-weight: 700;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    color: #0c0a09;
-    margin: 0 0 1rem;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    color: #ffffff;
+    margin: 0 0 1.1rem;
   }
 
-  .section-description {
-    font-size: 1.0625rem;
+  .activities-lead {
+    font-size: 1.075rem;
     line-height: 1.65;
-    color: #57534e;
+    color: rgba(226, 232, 240, 0.72);
     margin: 0;
   }
 
-  /*
-   * Layout asimétrico: primera tarjeta destacada (span 2 cols de 3),
-   * las dos siguientes comparten la misma fila.
-   * desktop: [Kayak ×2] [Hidropedales]
-   *          [Barcas ×3]
-   * No usamos 3 columnas iguales (pattern genérico prohibido por design-taste-frontend).
-   */
-  .activities-grid {
+  .family {
+    margin-top: 4rem;
+  }
+
+  .family:first-of-type {
+    margin-top: 0;
+  }
+
+  .family-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .family-index {
+    font-family: var(--font-heading);
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    font-weight: 700;
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgba(56, 189, 248, 0.5);
+    flex-shrink: 0;
+  }
+
+  .family-heading {
+    flex: 1;
+  }
+
+  .family-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #fbbf24;
+    margin-bottom: 0.35rem;
+  }
+
+  .family-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    margin: 0 0 0.6rem;
+  }
+
+  .family-desc {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgba(226, 232, 240, 0.68);
+    margin: 0;
+    max-width: 640px;
+  }
+
+  .family-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1.75rem;
+    gap: 1.5rem;
     list-style: none;
     padding: 0;
     margin: 0;
   }
 
-  @media (min-width: 768px) {
-    .activities-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
+  .family-grid > li {
+    display: flex;
+  }
 
-    /* Primera tarjeta: ocupa ambas columnas en mobile-landscape/tablet */
-    .activities-grid li:first-child {
-      grid-column: 1 / -1;
+  @media (min-width: 640px) {
+    .family-grid {
+      grid-template-columns: repeat(2, 1fr);
     }
   }
 
   @media (min-width: 1024px) {
-    .activities-grid {
+    /* Familia de 3: primera destacada (span 2) + 2 apiladas a la derecha */
+    .family-grid--3 {
       grid-template-columns: repeat(3, 1fr);
     }
 
-    /* Primera tarjeta: span 2 de 3 columnas (destacada) */
-    .activities-grid li:first-child {
+    .family-grid--3 > li:first-child {
       grid-column: span 2;
     }
 
-    /* Tercera tarjeta ocupa fila completa */
-    .activities-grid li:last-child {
-      grid-column: 1 / -1;
+    /* Familia de 4: cuadrícula limpia en desktop ancho */
+    .family-grid--4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) and (max-width: 1279px) {
+    .family-grid--4 {
+      grid-template-columns: repeat(2, 1fr);
     }
   }
 </style>
