@@ -193,7 +193,12 @@ export default function HeroCarousel({ slides, rotation }: Props) {
     firstRenderRef.current = false;
     if (reduced || !rotation.autoplay || !isMulti || paused) return;
 
-    const intervalMs = activeIsVideo ? rotation.videoIntervalMs : rotation.intervalMs;
+    // Duración de permanencia del slide activo: prioriza `slide.duration` (s → ms,
+    // contrato CIBA-2241, rango 1–30 s ya validado en cms.ts); si está ausente,
+    // hereda el intervalo global del hero (vídeo/imagen). Cada avance reprograma
+    // este efecto (dep `active`), por lo que el temporizador es por-slide, no fijo.
+    const globalMs = activeIsVideo ? rotation.videoIntervalMs : rotation.intervalMs;
+    const intervalMs = activeSlide?.duration ? activeSlide.duration * 1000 : globalMs;
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     const start = () => {
@@ -217,7 +222,7 @@ export default function HeroCarousel({ slides, rotation }: Props) {
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [active, paused, reduced, isMulti, activeIsVideo, rotation, goTo]);
+  }, [active, activeSlide, paused, reduced, isMulti, activeIsVideo, rotation, goTo]);
 
   // ─── Gestión de vídeo por-slide: reproducir activo, pausar inactivos ──────────
   useEffect(() => {
