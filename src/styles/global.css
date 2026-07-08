@@ -1,7 +1,45 @@
-/* ─── Fuentes (debe ir antes de cualquier otra regla CSS) ─── */
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
-
 @import "tailwindcss";
+
+/* ─── Fuentes self-hosted (CIBA-2201) ───────────────────────────
+   Set interino Hero configurable (CIBA-2199 en curso): Space Grotesk +
+   Inter (base del sitio) + Anton / Oswald / Bebas Neue (display del Hero).
+   font-display: swap → sin bloqueo de render; el título se precarga en el
+   <head> del Hero para minimizar el FOUT. Subset latin (es/ca cubierto). */
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/assets/fonts/spacegrotesk-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/assets/fonts/inter-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Anton';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/assets/fonts/anton-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Oswald';
+  font-style: normal;
+  font-weight: 200 700;
+  font-display: swap;
+  src: url('/assets/fonts/oswald-latin.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Bebas Neue';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/assets/fonts/bebasneue-latin.woff2') format('woff2');
+}
 
 /* ─── Design Tokens ─────────────────────────────────────────── */
 @theme {

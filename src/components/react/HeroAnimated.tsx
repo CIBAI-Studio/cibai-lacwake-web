@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion';
 
 interface HeroAnimatedProps {
+  overline?: string;
   title?: string;
   subtitle?: string;
   reserveUrl?: string;
@@ -26,6 +27,7 @@ const fadeSlideUp = {
 };
 
 export default function HeroAnimated({
+  overline = 'Actividades acuáticas',
   title = 'Tu aventura empieza en el agua',
   subtitle = 'Kayak, hidropedales y barcas en plena naturaleza. El pantano te espera.',
   reserveUrl = FALLBACK_URL,
@@ -34,11 +36,12 @@ export default function HeroAnimated({
   reserveSecondaryUrl = '/#actividades',
 }: HeroAnimatedProps) {
   const shouldReduce = useReducedMotion();
+  const hasOverline = typeof overline === 'string' && overline.trim() !== '';
 
   if (shouldReduce) {
     return (
       <div className="hero-content">
-        <div className="hero-tag">Actividades acuáticas</div>
+        {hasOverline && <div className="hero-tag">{overline}</div>}
         <h1 className="hero-title">{title}</h1>
         <p className="hero-subtitle">{subtitle}</p>
         <div className="hero-actions">
@@ -61,15 +64,17 @@ export default function HeroAnimated({
 
   return (
     <div className="hero-content">
-      <motion.div
-        className="hero-tag"
-        variants={fadeSlideUp}
-        initial="hidden"
-        animate="visible"
-        custom={0}
-      >
-        Actividades acuáticas
-      </motion.div>
+      {hasOverline && (
+        <motion.div
+          className="hero-tag"
+          variants={fadeSlideUp}
+          initial="hidden"
+          animate="visible"
+          custom={0}
+        >
+          {overline}
+        </motion.div>
+      )}
 
       <motion.h1
         className="hero-title"
