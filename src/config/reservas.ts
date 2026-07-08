@@ -4,17 +4,17 @@
  * Se mantienen aquí como fallback de último recurso y para referencia.
  */
 export const RESERVAS = {
-  url: 'https://wa.me/34600000000?text=Hola%2C%20quiero%20reservar%20una%20actividad%20en%20Lacwake',
+  url: 'https://wa.me/34617698984?text=Hola%2C%20quiero%20reservar%20una%20actividad%20en%20Lacwake',
   label: 'Reservar ahora',
   labelShort: 'Reservar',
 } as const;
 
 export const CONTACTO = {
-  telefono: '+34 600 000 000',
-  telefonoUrl: 'tel:+34600000000',
+  telefono: '+34 617 69 89 84',
+  telefonoUrl: 'tel:+34617698984',
   email: 'info@lacwake.es',
   emailUrl: 'mailto:info@lacwake.es',
-  direccion: 'Pantano de Sau, Girona',
+  direccion: 'Embalse de la Baells — Cercs (Berguedà, Barcelona)',
   horario: 'Todos los días 9:00 – 20:00 (temporada)',
-  latLng: [41.9830, 2.3909] as [number, number],
+  latLng: [42.1460, 1.8760] as [number, number],
 } as const;

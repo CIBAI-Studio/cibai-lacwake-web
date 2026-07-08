@@ -9,7 +9,7 @@ interface HeroAnimatedProps {
   reserveSecondaryUrl?: string;
 }
 
-const FALLBACK_URL = 'https://wa.me/34600000000?text=Hola%2C%20quiero%20reservar%20una%20actividad%20en%20Lacwake';
+const FALLBACK_URL = 'https://wa.me/34617698984?text=Hola%2C%20quiero%20reservar%20una%20actividad%20en%20Lacwake';
 
 const fadeSlideUp = {
   hidden: { opacity: 0, y: 32 },
