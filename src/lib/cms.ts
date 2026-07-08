@@ -101,6 +101,71 @@ export interface HeroContent {
   };
 }
 
+// ─── Hero carrusel multi-slide (CIBA-2217 / contrato CIBA-2215) ───────────────
+
+export type HeroBackgroundType = 'image' | 'video';
+
+export interface HeroSlideBackground {
+  type: HeroBackgroundType;
+  /** Sólo cuando type=video */
+  videoUrl: string;
+  /** Póster del vídeo (opcional). También es el fallback visible. */
+  fallbackImage: string;
+  /** Sólo cuando type=image */
+  imageUrl: string;
+}
+
+/** Slide resuelto y saneado, listo para render. Extiende la capa de texto del Hero. */
+export interface HeroSlide {
+  id: string;
+  active: boolean;
+  order: number;
+  background: HeroSlideBackground;
+  overline: string;
+  title: string;
+  subtitle: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  ctaSecondaryLabel: string;
+  ctaSecondaryUrl: string;
+  layout: { h: HeroHAlign; v: HeroVAlign };
+  typography: {
+    title: HeroTitleTypo;
+    subtitle: HeroSubtitleTypo;
+    button: HeroButtonTypo;
+  };
+  video: {
+    preload: 'auto' | 'metadata' | 'none';
+    loop: boolean;
+    soundIntent: 'on' | 'off';
+  };
+}
+
+export type HeroTransition = 'fade' | 'slide' | 'none';
+
+/** Config de rotación del carrusel (spec DESIGNER CIBA-2214 §5 + contrato §7). */
+export interface HeroRotation {
+  /** Auto-rotación activa. Sólo surte efecto con ≥2 slides. */
+  autoplay: boolean;
+  /** Intervalo base por slide de imagen (ms). */
+  intervalMs: number;
+  /** Intervalo por slide de vídeo (ms). */
+  videoIntervalMs: number;
+  /** Tipo de transición del contrato backend. */
+  transition: HeroTransition;
+  /** Duración del crossfade de media (ms). */
+  transitionMs: number;
+  /** Flechas prev/next (opt-in, sólo ≥1024px). Default OFF. */
+  showArrows: boolean;
+  /** Rotación circular. */
+  loop: boolean;
+}
+
+export interface HeroCarousel {
+  slides: HeroSlide[];
+  rotation: HeroRotation;
+}
+
 export interface WhyContent {
   label: string;
   title: string;
@@ -326,6 +391,183 @@ export async function getHeroContent(): Promise<HeroContent> {
       ),
     },
   };
+}
+
+// ─── Hero carrusel: defaults, parsing y fetch (CIBA-2217) ─────────────────────
+
+const HERO_MAX_SLIDES = 5;
+const HERO_DEFAULT_IMAGE_MS = 6000;
+const HERO_DEFAULT_VIDEO_MS = 8000;
+const HERO_DEFAULT_TRANSITION_MS = 800;
+
+type Raw = Record<string, unknown>;
+
+/** Mapea el bloque typography (snake_case del CMS) reusando los defaults del Hero. */
+function parseHeroTypography(typoRaw: Raw): HeroSlide['typography'] {
+  const F = FALLBACK_HERO.typography;
+  const tTitle = (typoRaw.title ?? {}) as Raw;
+  const tSub = (typoRaw.subtitle ?? {}) as Raw;
+  const tBtn = (typoRaw.button ?? {}) as Raw;
+  return {
+    title: {
+      font: vStr(tTitle.font, F.title.font),
+      size: vNum(tTitle.size, F.title.size, 8, 200),
+      color: vHex(tTitle.color, F.title.color),
+      accentColor: vHex(tTitle.accent_color ?? tTitle.accentColor, F.title.accentColor),
+    },
+    subtitle: {
+      font: vStr(tSub.font, F.subtitle.font),
+      size: vNum(tSub.size, F.subtitle.size, 8, 200),
+      color: vHex(tSub.color, F.subtitle.color),
+    },
+    button: {
+      font: vStr(tBtn.font, F.button.font),
+      size: vNum(tBtn.size, F.button.size, 8, 200),
+      textColor: vHex(tBtn.text_color ?? tBtn.textColor, F.button.textColor),
+      bgColor: vHex(tBtn.bg_color ?? tBtn.bgColor, F.button.bgColor),
+    },
+  };
+}
+
+function parseHeroLayout(layoutRaw: Raw): HeroSlide['layout'] {
+  const F = FALLBACK_HERO.layout;
+  return {
+    h: vEnum(layoutRaw.h, ['left', 'center', 'right'] as const, F.h),
+    v: vEnum(layoutRaw.v, ['top', 'center', 'bottom'] as const, F.v),
+  };
+}
+
+function parseHeroVideo(videoRaw: Raw): HeroSlide['video'] {
+  const F = FALLBACK_HERO.video;
+  return {
+    preload: vEnum(videoRaw.preload, ['auto', 'metadata', 'none'] as const, F.preload),
+    loop: typeof videoRaw.loop === 'boolean' ? videoRaw.loop : F.loop,
+    soundIntent: vEnum(videoRaw.sound_intent ?? videoRaw.soundIntent, ['on', 'off'] as const, F.soundIntent),
+  };
+}
+
+/** Convierte un HeroSlide crudo del contrato backend en un slide resuelto. */
+function parseHeroSlide(raw: Raw, index: number): HeroSlide {
+  const s = (f: string) => raw[f] as string | undefined;
+  const bg = (raw.background ?? {}) as Raw;
+  const videoUrl = vStr(bg.video_url ?? bg.videoUrl, '');
+  const imageUrl = vStr(bg.image_url ?? bg.imageUrl, '');
+  // Tipo: respeta el contrato; si es inválido, se infiere por el campo presente.
+  const inferred: HeroBackgroundType = videoUrl ? 'video' : 'image';
+  const type = vEnum(bg.type, ['image', 'video'] as const, inferred);
+
+  return {
+    id: vStr(raw.id, `slide-${index}`),
+    active: raw.active !== false,
+    order: vNum(raw.order, index, 0, 9999),
+    background: {
+      type,
+      videoUrl,
+      fallbackImage: vStr(bg.fallback_image ?? bg.fallbackImage, ''),
+      imageUrl,
+    },
+    overline: s('overline') ?? FALLBACK_HERO.overline,
+    title: s('title') ?? FALLBACK_HERO.title,
+    subtitle: s('subtitle') ?? FALLBACK_HERO.subtitle,
+    ctaLabel: s('cta_primary_text') ?? s('cta_text') ?? s('ctaLabel') ?? FALLBACK_HERO.ctaLabel,
+    ctaUrl: s('cta_primary_href') ?? s('cta_href') ?? s('ctaUrl') ?? FALLBACK_HERO.ctaUrl,
+    ctaSecondaryLabel: s('cta_secondary_text') ?? s('ctaSecondaryLabel') ?? FALLBACK_HERO.ctaSecondaryLabel,
+    ctaSecondaryUrl: s('cta_secondary_href') ?? s('ctaSecondaryUrl') ?? FALLBACK_HERO.ctaSecondaryUrl,
+    layout: parseHeroLayout((raw.layout ?? {}) as Raw),
+    typography: parseHeroTypography((raw.typography ?? {}) as Raw),
+    video: parseHeroVideo((raw.video ?? {}) as Raw),
+  };
+}
+
+function parseHeroRotation(raw: Raw): HeroRotation {
+  const intervalMs = vNum(
+    raw.intervalMs ?? raw.interval_ms ?? raw.default_image_ms,
+    HERO_DEFAULT_IMAGE_MS,
+    1000,
+    60000,
+  );
+  const videoIntervalMs = vNum(
+    raw.videoIntervalMs ?? raw.default_video_ms,
+    Math.max(intervalMs, HERO_DEFAULT_VIDEO_MS),
+    1000,
+    60000,
+  );
+  const showArrows = raw.show_arrows ?? raw.showArrows;
+  return {
+    autoplay: typeof raw.autoplay === 'boolean' ? raw.autoplay : true,
+    intervalMs,
+    videoIntervalMs,
+    transition: vEnum(raw.transition, ['fade', 'slide', 'none'] as const, 'fade'),
+    transitionMs: vNum(raw.transitionMs ?? raw.transition_ms, HERO_DEFAULT_TRANSITION_MS, 0, 2000),
+    showArrows: typeof showArrows === 'boolean' ? showArrows : false,
+    loop: typeof raw.loop === 'boolean' ? raw.loop : true,
+  };
+}
+
+/** Deriva un slide único a partir del contenido legacy del Hero (retrocompat / fallback). */
+function legacySlideFromHero(h: HeroContent): HeroSlide {
+  const type: HeroBackgroundType = h.videoUrl ? 'video' : 'image';
+  return {
+    id: 'legacy-hero',
+    active: true,
+    order: 0,
+    background: {
+      type,
+      videoUrl: h.videoUrl,
+      fallbackImage: h.fallbackImage,
+      imageUrl: type === 'image' ? h.fallbackImage : '',
+    },
+    overline: h.overline,
+    title: h.title,
+    subtitle: h.subtitle,
+    ctaLabel: h.ctaLabel,
+    ctaUrl: h.ctaUrl,
+    ctaSecondaryLabel: h.ctaSecondaryLabel,
+    ctaSecondaryUrl: h.ctaSecondaryUrl,
+    layout: h.layout,
+    typography: h.typography,
+    video: h.video,
+  };
+}
+
+const DEFAULT_HERO_ROTATION: HeroRotation = {
+  autoplay: true,
+  intervalMs: HERO_DEFAULT_IMAGE_MS,
+  videoIntervalMs: HERO_DEFAULT_VIDEO_MS,
+  transition: 'fade',
+  transitionMs: HERO_DEFAULT_TRANSITION_MS,
+  showArrows: false,
+  loop: true,
+};
+
+/**
+ * Carrusel Hero multi-slide. Consume el endpoint público `GET /api/content/hero`
+ * (contrato CIBA-2221), cuyo `content` es `{ slides:[...activos ordenados], rotation }`.
+ * El backend ya filtra activos + ordena + normaliza heroes legacy en `slides[0]`.
+ *
+ * Retrocompat total: si el endpoint no expone `slides` (API caída o hero legacy sin
+ * migrar), cae al contenido `content/hero` envuelto en un único slide → Hero
+ * single-slide sin regresión.
+ */
+export async function getHeroSlides(): Promise<HeroCarousel> {
+  const content = await fetchSection('/api/content/hero');
+
+  const rawSlides = Array.isArray(content?.slides) ? (content!.slides as Raw[]) : [];
+  if (rawSlides.length > 0) {
+    const slides = rawSlides
+      .map((r, i) => parseHeroSlide((r ?? {}) as Raw, i))
+      .filter((s) => s.active)
+      .sort((a, b) => a.order - b.order)
+      .slice(0, HERO_MAX_SLIDES);
+
+    if (slides.length > 0) {
+      return { slides, rotation: parseHeroRotation((content?.rotation ?? {}) as Raw) };
+    }
+  }
+
+  // Fallback legacy → un único slide (comportamiento idéntico al Hero actual).
+  const legacy = await getHeroContent();
+  return { slides: [legacySlideFromHero(legacy)], rotation: DEFAULT_HERO_ROTATION };
 }
 
 export async function getWhyContent(): Promise<WhyContent> {
