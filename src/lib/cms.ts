@@ -56,6 +56,27 @@ async function fetchSection(path: string): Promise<Record<string, unknown> | nul
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+export type HeroHAlign = 'left' | 'center' | 'right';
+export type HeroVAlign = 'top' | 'center' | 'bottom';
+
+export interface HeroTitleTypo {
+  font: string;
+  size: number;
+  color: string;
+  accentColor: string;
+}
+export interface HeroSubtitleTypo {
+  font: string;
+  size: number;
+  color: string;
+}
+export interface HeroButtonTypo {
+  font: string;
+  size: number;
+  textColor: string;
+  bgColor: string;
+}
+
 export interface HeroContent {
   title: string;
   subtitle: string;
@@ -65,6 +86,19 @@ export interface HeroContent {
   ctaUrl: string;
   ctaSecondaryLabel: string;
   ctaSecondaryUrl: string;
+  // ─── Configurables (CIBA-2201) — todos opcionales en el CMS, con defaults ───
+  overline: string;
+  layout: { h: HeroHAlign; v: HeroVAlign };
+  typography: {
+    title: HeroTitleTypo;
+    subtitle: HeroSubtitleTypo;
+    button: HeroButtonTypo;
+  };
+  video: {
+    preload: 'auto' | 'metadata' | 'none';
+    loop: boolean;
+    soundIntent: 'on' | 'off';
+  };
 }
 
 export interface WhyContent {
@@ -154,7 +188,33 @@ const FALLBACK_HERO: HeroContent = {
   ctaUrl: FALLBACK_SITE_CONFIG.whatsappUrl,
   ctaSecondaryLabel: 'Ver actividades',
   ctaSecondaryUrl: '/#actividades',
+  // Estado inicial exigido por el cliente (CIBA-2197 §1): abajo-izquierda,
+  // fuente display de referencia (set interino: Anton) y sonido activo.
+  overline: 'Actividades acuáticas',
+  layout: { h: 'left', v: 'bottom' },
+  typography: {
+    title: { font: 'anton', size: 76, color: '#FFFFFF', accentColor: '#f59e0b' },
+    subtitle: { font: 'inter', size: 20, color: '#E2E8F0' },
+    button: { font: 'inter', size: 16, textColor: '#0B1120', bgColor: '#f59e0b' },
+  },
+  video: { preload: 'auto', loop: true, soundIntent: 'on' },
 };
+
+// ─── Validadores defensivos (el Backend valida, la web es resiliente) ─────────
+const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+function vHex(v: unknown, fb: string): string {
+  return typeof v === 'string' && HEX_RE.test(v.trim()) ? v.trim() : fb;
+}
+function vNum(v: unknown, fb: number, min: number, max: number): number {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fb;
+}
+function vEnum<T extends string>(v: unknown, allowed: readonly T[], fb: T): T {
+  return typeof v === 'string' && (allowed as readonly string[]).includes(v) ? (v as T) : fb;
+}
+function vStr(v: unknown, fb: string): string {
+  return typeof v === 'string' && v.trim() !== '' ? v : fb;
+}
 
 const FALLBACK_WHY: WhyContent = {
   label: 'Nuestra propuesta',
@@ -206,17 +266,65 @@ export async function getHeroContent(): Promise<HeroContent> {
   const c = await fetchSection('/api/content/hero');
   if (!c) return FALLBACK_HERO;
   const s = (f: string) => c[f] as string | undefined;
+
+  // Bloques anidados nuevos (opcionales). Se leen defensivamente.
+  const F = FALLBACK_HERO;
+  const layout = (c.layout ?? {}) as Record<string, unknown>;
+  const typo = (c.typography ?? {}) as Record<string, unknown>;
+  const tTitle = (typo.title ?? {}) as Record<string, unknown>;
+  const tSub = (typo.subtitle ?? {}) as Record<string, unknown>;
+  const tBtn = (typo.button ?? {}) as Record<string, unknown>;
+  const video = (c.video ?? {}) as Record<string, unknown>;
+
   return {
-    title: s('title') ?? FALLBACK_HERO.title,
-    subtitle: s('subtitle') ?? FALLBACK_HERO.subtitle,
+    title: s('title') ?? F.title,
+    subtitle: s('subtitle') ?? F.subtitle,
     // Admin field is `video_url`; accept legacy `video_src` / camelCase as well
-    videoUrl: s('video_url') ?? s('video_src') ?? s('videoUrl') ?? FALLBACK_HERO.videoUrl,
-    fallbackImage: s('fallback_image') ?? s('fallbackImage') ?? FALLBACK_HERO.fallbackImage,
+    videoUrl: s('video_url') ?? s('video_src') ?? s('videoUrl') ?? F.videoUrl,
+    fallbackImage: s('fallback_image') ?? s('fallbackImage') ?? F.fallbackImage,
     // Admin fields are `cta_text` / `cta_href`; accept verbose `cta_primary_*` variants too
-    ctaLabel: s('cta_text') ?? s('cta_primary_text') ?? s('ctaLabel') ?? FALLBACK_HERO.ctaLabel,
-    ctaUrl: s('cta_href') ?? s('cta_primary_href') ?? s('ctaUrl') ?? FALLBACK_HERO.ctaUrl,
-    ctaSecondaryLabel: s('cta_secondary_text') ?? s('ctaSecondaryLabel') ?? FALLBACK_HERO.ctaSecondaryLabel,
-    ctaSecondaryUrl: s('cta_secondary_href') ?? s('ctaSecondaryUrl') ?? FALLBACK_HERO.ctaSecondaryUrl,
+    ctaLabel: s('cta_text') ?? s('cta_primary_text') ?? s('ctaLabel') ?? F.ctaLabel,
+    ctaUrl: s('cta_href') ?? s('cta_primary_href') ?? s('ctaUrl') ?? F.ctaUrl,
+    ctaSecondaryLabel: s('cta_secondary_text') ?? s('ctaSecondaryLabel') ?? F.ctaSecondaryLabel,
+    ctaSecondaryUrl: s('cta_secondary_href') ?? s('ctaSecondaryUrl') ?? F.ctaSecondaryUrl,
+
+    // ─── Nuevos campos configurables (CIBA-2201) ───
+    overline: s('overline') ?? F.overline,
+    layout: {
+      h: vEnum(layout.h, ['left', 'center', 'right'] as const, F.layout.h),
+      v: vEnum(layout.v, ['top', 'center', 'bottom'] as const, F.layout.v),
+    },
+    typography: {
+      title: {
+        font: vStr(tTitle.font, F.typography.title.font),
+        size: vNum(tTitle.size, F.typography.title.size, 8, 200),
+        color: vHex(tTitle.color, F.typography.title.color),
+        accentColor: vHex(
+          tTitle.accent_color ?? tTitle.accentColor,
+          F.typography.title.accentColor,
+        ),
+      },
+      subtitle: {
+        font: vStr(tSub.font, F.typography.subtitle.font),
+        size: vNum(tSub.size, F.typography.subtitle.size, 8, 200),
+        color: vHex(tSub.color, F.typography.subtitle.color),
+      },
+      button: {
+        font: vStr(tBtn.font, F.typography.button.font),
+        size: vNum(tBtn.size, F.typography.button.size, 8, 200),
+        textColor: vHex(tBtn.text_color ?? tBtn.textColor, F.typography.button.textColor),
+        bgColor: vHex(tBtn.bg_color ?? tBtn.bgColor, F.typography.button.bgColor),
+      },
+    },
+    video: {
+      preload: vEnum(video.preload, ['auto', 'metadata', 'none'] as const, F.video.preload),
+      loop: typeof video.loop === 'boolean' ? video.loop : F.video.loop,
+      soundIntent: vEnum(
+        video.sound_intent ?? video.soundIntent,
+        ['on', 'off'] as const,
+        F.video.soundIntent,
+      ),
+    },
   };
 }
 
