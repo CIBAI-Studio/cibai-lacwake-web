@@ -2,10 +2,10 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import ActivitiesSection from '../components/sections/ActivitiesSection.astro';
-import { getHeroContent, getWhyContent, getCtaContent, getSiteConfig } from '../lib/cms';
+import { getHeroSlides, getWhyContent, getCtaContent, getSiteConfig } from '../lib/cms';
 
-const [hero, why, cta, siteConfig] = await Promise.all([
-  getHeroContent(),
+const [heroCarousel, why, cta, siteConfig] = await Promise.all([
+  getHeroSlides(),
   getWhyContent(),
   getCtaContent(),
   getSiteConfig(),
@@ -16,21 +16,8 @@ const [hero, why, cta, siteConfig] = await Promise.all([
   title="Lacwake"
   description="Lacwake — 11 actividades acuáticas en el embalse de la Baells: kayak, wakeboard, wakesurf, esquí náutico, paddle surf, barcas y más. Reserva ahora por WhatsApp."
 >
-  <!-- Hero fullscreen -->
-  <Hero
-    title={hero.title}
-    subtitle={hero.subtitle}
-    videoSrc={hero.videoUrl}
-    fallbackImage={hero.fallbackImage}
-    ctaUrl={hero.ctaUrl}
-    ctaLabel={hero.ctaLabel}
-    ctaSecondaryLabel={hero.ctaSecondaryLabel}
-    ctaSecondaryUrl={hero.ctaSecondaryUrl}
-    overline={hero.overline}
-    layout={hero.layout}
-    typography={hero.typography}
-    video={hero.video}
-  />
+  <!-- Hero fullscreen (carrusel multi-slide, CIBA-2217) -->
+  <Hero slides={heroCarousel.slides} rotation={heroCarousel.rotation} />
 
   <!-- Actividades -->
   <ActivitiesSection whatsappUrl={siteConfig.whatsappUrl} />
