@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { getSiteConfig } from '../lib/cms';
 
 const siteConfig = await getSiteConfig();
-const LAT_LNG: [number, number] = [41.9830, 2.3909];
+const LAT_LNG: [number, number] = [42.1460, 1.8760];
 ---
 
 <BaseLayout
@@ -119,8 +119,8 @@ const LAT_LNG: [number, number] = [41.9830, 2.3909];
                 <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
                 <circle cx="12" cy="10" r="3"></circle>
               </svg>
-              <p>Pantano de Sau</p>
-              <span>Girona, Cataluña</span>
+              <p>Embalse de la Baells</p>
+              <span>Cercs (Berguedà, Barcelona)</span>
             </div>
             <a
               href={`https://maps.google.com/maps?q=${LAT_LNG[0]},${LAT_LNG[1]}&z=13`}
@@ -138,13 +138,13 @@ const LAT_LNG: [number, number] = [41.9830, 2.3909];
             <h3 class="how-title">Cómo llegar</h3>
             <ul class="how-list" role="list">
               <li>
-                <strong>Desde Barcelona:</strong> AP-7 dirección Girona, salida Vila-roja. 1h 15 min aproximadamente.
+                <strong>Desde Barcelona:</strong> C-16 dirección Berga/Manresa, salida Cercs (Berguedà). 1h 30 min aproximadamente.
               </li>
               <li>
-                <strong>Desde Girona:</strong> C-25 dirección Vic, luego carretera local al pantano. 45 min aproximadamente.
+                <strong>Desde Manresa:</strong> C-16 dirección Berga hasta la salida de Cercs. 45 min aproximadamente.
               </li>
               <li>
-                <strong>Transporte público:</strong> Bus desde Vic o Girona (consultar horarios de temporada).
+                <strong>Transporte público:</strong> Bus hasta Berga y trayecto local hasta el embalse (consultar horarios de temporada).
               </li>
               <li>
                 <strong>Parking:</strong> Gratuito en las instalaciones de Lacwake.

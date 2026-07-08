@@ -132,14 +132,14 @@ const FALLBACK_MENU: MenuItem[] = [
 ];
 
 const FALLBACK_SITE_CONFIG: SiteConfig = {
-  whatsappUrl: 'https://wa.me/34600000000?text=Hola%2C%20quiero%20reservar%20una%20actividad%20en%20Lacwake',
+  whatsappUrl: 'https://wa.me/34617698984?text=Hola%2C%20quiero%20reservar%20una%20actividad%20en%20Lacwake',
   whatsappLabel: 'Reservar ahora',
   whatsappLabelShort: 'Reservar',
-  phone: '+34 600 000 000',
-  phoneUrl: 'tel:+34600000000',
+  phone: '+34 617 69 89 84',
+  phoneUrl: 'tel:+34617698984',
   email: 'info@lacwake.es',
   emailUrl: 'mailto:info@lacwake.es',
-  address: 'Pantano de Sau, Girona',
+  address: 'Embalse de la Baells — Cercs (Berguedà, Barcelona)',
   schedule: 'Todos los días 9:00 – 20:00 (temporada)',
 };
 
