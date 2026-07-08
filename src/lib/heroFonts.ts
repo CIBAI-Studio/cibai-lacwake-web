@@ -36,6 +36,11 @@ export const HERO_FONTS: Record<string, HeroFont> = {
     family: `'Bebas Neue', 'Oswald', ${SYS}`,
     file: '/assets/fonts/bebasneue-latin.woff2',
   },
+  'archivo-narrow': {
+    key: 'archivo-narrow',
+    family: `'Archivo Narrow', 'Oswald', ${SYS}`,
+    file: '/assets/fonts/archivonarrow-latin.woff2',
+  },
   'space-grotesk': {
     key: 'space-grotesk',
     family: `'Space Grotesk', ${SYS}`,
@@ -56,6 +61,9 @@ const ALIASES: Record<string, string> = {
   spacegrotesk: 'space-grotesk',
   space_grotesk: 'space-grotesk',
   'space grotesk': 'space-grotesk',
+  archivonarrow: 'archivo-narrow',
+  archivo_narrow: 'archivo-narrow',
+  'archivo narrow': 'archivo-narrow',
   default: 'space-grotesk',
   heading: 'space-grotesk',
   body: 'inter',

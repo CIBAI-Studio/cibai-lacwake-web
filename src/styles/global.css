@@ -40,6 +40,13 @@
   font-display: swap;
   src: url('/assets/fonts/bebasneue-latin.woff2') format('woff2');
 }
+@font-face {
+  font-family: 'Archivo Narrow';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/assets/fonts/archivonarrow-latin.woff2') format('woff2');
+}
 
 /* ─── Design Tokens ─────────────────────────────────────────── */
 @theme {
