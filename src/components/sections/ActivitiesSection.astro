@@ -1,6 +1,7 @@
 ---
 import ActivityTile from '../ActivityTile.astro';
-import { ACTIVITY_FAMILIES, ACTIVITY_COUNT } from '../../config/actividades';
+import { ACTIVITY_FAMILIES, ACTIVITY_COUNT, type Activity } from '../../config/actividades';
+import { getHomeContent, type HomeActivity } from '../../lib/cms';
 // Line-art recoloreable (currentColor) → inline para heredar el teal (punto 4)
 import montanasSolPuente from '../../../public/assets/redesign/decor/montanas-sol-puente.svg?raw';
 
@@ -9,6 +10,28 @@ interface Props {
 }
 
 const { whatsappUrl } = Astro.props;
+
+// Cards pilotables desde la key `home` del CMS (CIBA-2345). Sin CMS → mapa vacío
+// → se renderiza el catálogo semilla sin cambios (home idéntica).
+const home = await getHomeContent();
+const overrides = new Map<string, HomeActivity>(home.activities.map((a) => [a.id, a]));
+
+/** Aplica el override CMS sobre la card del catálogo (sólo campos no vacíos). */
+const pick = (o: string | undefined, fb: string): string =>
+  o !== undefined && o.trim() !== '' ? o : fb;
+
+function resolveActivity(base: Activity, o?: HomeActivity): Activity {
+  if (!o) return base;
+  return {
+    ...base,
+    name: pick(o.title, base.name),
+    blurb: pick(o.blurb, base.blurb),
+    tag: pick(o.tag, base.tag),
+    image: pick(o.image, base.image),
+    imageAlt: pick(o.imageAlt, base.imageAlt),
+    href: pick(o.pageHref, base.href),
+  };
+}
 ---
 
 <section class="activities" id="actividades" aria-labelledby="activities-title">
@@ -70,15 +93,20 @@ const { whatsappUrl } = Astro.props;
           class:list={['family-grid', `family-grid--${family.activities.length}`]}
           role="list"
         >
-          {family.activities.map((activity, i) => (
-            <li>
-              <ActivityTile
-                activity={activity}
-                whatsappUrl={whatsappUrl}
-                featured={family.activities.length === 3 && i === 0}
-              />
-            </li>
-          ))}
+          {family.activities.map((activity, i) => {
+            const o = overrides.get(activity.slug);
+            return (
+              <li>
+                <ActivityTile
+                  activity={resolveActivity(activity, o)}
+                  whatsappUrl={whatsappUrl}
+                  featured={family.activities.length === 3 && i === 0}
+                  ctaLabel={o?.ctaLabel}
+                  ctaMessage={o?.ctaWhatsappMessage}
+                />
+              </li>
+            );
+          })}
         </ul>
 
       </div>

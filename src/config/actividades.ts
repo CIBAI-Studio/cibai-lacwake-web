@@ -1,11 +1,14 @@
 /**
- * Catálogo real de actividades acuáticas de Lacwake (reservas.lacwake.es).
+ * Catálogo real de actividades acuáticas de Lacwake.
  * 11 actividades agrupadas por familia para la home rediseñada (CIBA-2173).
  *
  * Cada tarjeta es visible y enlazable:
- *  - `href`  → página informativa interna cuando existe, o el sistema de
- *              reservas (reservas.lacwake.es) para las que aún no tienen ficha.
+ *  - `href`  → página informativa interna de la actividad (`/actividades/*`).
+ *              Ninguna card enlaza al subdominio de reservas (CIBA-2345).
  *  - Botón "Reservar" → WhatsApp con mensaje prefijado por actividad (ver waLink).
+ *
+ * Este catálogo es la SEMILLA/fallback: las cards pueden pilotarse desde la key
+ * `home` del CMS (ver `getHomeContent` en lib/cms). Sin CMS, la home se ve idéntica.
  *
  * Las imágenes son los assets generados por el Designer (CIBA-2172) en
  * public/assets/redesign/ — WebP 16:9, estética cinematográfica coherente.
@@ -20,7 +23,7 @@ export interface Activity {
   tag: string;
   image: string;
   imageAlt: string;
-  /** Enlace "Ver más" — ficha interna o reservas.lacwake.es. */
+  /** Enlace "Ver más" — ficha interna `/actividades/*`. */
   href: string;
 }
 
@@ -36,7 +39,6 @@ export interface ActivityFamily {
   activities: Activity[];
 }
 
-const RESERVAS_URL = 'https://reservas.lacwake.es';
 const IMG = '/assets/redesign';
 
 export const ACTIVITY_FAMILIES: ActivityFamily[] = [
@@ -92,7 +94,7 @@ export const ACTIVITY_FAMILIES: ActivityFamily[] = [
         tag: 'Intenso',
         image: `${IMG}/wakeboard.webp`,
         imageAlt: 'Rider de wakeboard saltando la estela de la lancha con spray de agua a contraluz',
-        href: RESERVAS_URL,
+        href: '/actividades/wakeboard',
       },
       {
         slug: 'wakesurf',
@@ -101,7 +103,7 @@ export const ACTIVITY_FAMILIES: ActivityFamily[] = [
         tag: 'Técnico',
         image: `${IMG}/wakesurf.webp`,
         imageAlt: 'Wakesurfista deslizándose sobre la ola de la lancha en el pantano de la Baells',
-        href: RESERVAS_URL,
+        href: '/actividades/wakesurf',
       },
       {
         slug: 'wakeskate',
@@ -110,7 +112,7 @@ export const ACTIVITY_FAMILIES: ActivityFamily[] = [
         tag: 'Avanzado',
         image: `${IMG}/wakeskate.webp`,
         imageAlt: 'Rider de wakeskate maniobrando sobre el agua tras la lancha',
-        href: RESERVAS_URL,
+        href: '/actividades/wakeskate',
       },
       {
         slug: 'esqui-nautico',
@@ -119,7 +121,7 @@ export const ACTIVITY_FAMILIES: ActivityFamily[] = [
         tag: 'Clásico',
         image: `${IMG}/esqui-nautico.webp`,
         imageAlt: 'Esquiador náutico deslizándose sobre el pantano de la Baells con estela de agua',
-        href: RESERVAS_URL,
+        href: '/actividades/esqui-nautico',
       },
     ],
   },
@@ -180,13 +182,23 @@ export const ACTIVITY_COUNT = ACTIVITY_FAMILIES.reduce(
 /**
  * Construye un enlace de WhatsApp con mensaje prefijado por actividad,
  * reutilizando el número del `whatsappUrl` del CMS/siteConfig.
+ *
+ * `customMessage` (opcional) permite al Board sobrescribir el texto por card
+ * desde la key `home` del CMS (`cta_whatsapp_message`, CIBA-2345). Si se omite,
+ * se usa la plantilla por defecto por actividad.
+ *
  * Si no puede extraer el número, devuelve la URL base tal cual.
  */
-export function waLink(baseWhatsappUrl: string, activityName: string): string {
+export function waLink(
+  baseWhatsappUrl: string,
+  activityName: string,
+  customMessage?: string,
+): string {
   const match = baseWhatsappUrl.match(/(?:wa\.me\/|phone=)(\d+)/);
-  const text = encodeURIComponent(
-    `Hola, quiero reservar ${activityName} en Lacwake 🌊`,
-  );
+  const message =
+    customMessage && customMessage.trim() !== ''
+      ? customMessage.trim()
+      : `Hola, quiero reservar ${activityName} en Lacwake 🌊`;
   if (!match) return baseWhatsappUrl;
-  return `https://wa.me/${match[1]}?text=${text}`;
+  return `https://wa.me/${match[1]}?text=${encodeURIComponent(message)}`;
 }

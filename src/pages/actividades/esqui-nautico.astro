@@ -1,0 +1,45 @@
+---
+import ActivityLayout from '../../layouts/ActivityLayout.astro';
+import { getActivityContent } from '../../lib/cms';
+
+// Semilla (CIBA-2345) = blurb/tag existentes de actividades.ts. El Board podrá
+// ampliar esta ficha vía admin (`actividad_esqui-nautico`) sin tocar código.
+const cms = await getActivityContent('esqui-nautico');
+const title = cms?.title ?? 'Esquí Náutico';
+const description = cms?.description ?? 'El clásico que nunca falla. Dos esquís, velocidad y pura diversión.';
+const tag = cms?.tag ?? 'Clásico';
+const duration = cms?.duration;
+const minAge = cms?.minAge;
+const price = cms?.price;
+const included = cms?.included ?? [];
+const cmsBody = cms?.body ?? '';
+---
+
+<ActivityLayout
+  title={title}
+  description={description}
+  image="/assets/redesign/esqui-nautico.webp"
+  imageAlt="Esquiador náutico deslizándose sobre el pantano de la Baells con estela de agua"
+  tag={tag}
+  duration={duration}
+  minAge={minAge}
+  price={price}
+  included={included}
+>
+
+  <h2>Adrenalina sobre el agua</h2>
+  <p>
+    Deportes de tabla y velocidad tras la lancha. Golden hour, spray y máxima
+    intensidad para los que buscan emoción. El esquí náutico es el clásico que
+    nunca falla: dos esquís, velocidad y pura diversión sobre las aguas del
+    embalse de la Baells.
+  </p>
+
+  <p>
+    Reserva por WhatsApp y te confirmamos disponibilidad y nivel. Nuestro equipo
+    te acompaña en el agua en todo momento.
+  </p>
+
+  {cmsBody && <Fragment set:html={cmsBody} />}
+
+</ActivityLayout>

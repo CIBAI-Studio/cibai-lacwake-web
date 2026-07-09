@@ -1,0 +1,45 @@
+---
+import ActivityLayout from '../../layouts/ActivityLayout.astro';
+import { getActivityContent } from '../../lib/cms';
+
+// Semilla (CIBA-2345) = blurb/tag existentes de actividades.ts. El Board podrá
+// ampliar esta ficha vía admin (`actividad_wakeboard`) sin tocar código.
+const cms = await getActivityContent('wakeboard');
+const title = cms?.title ?? 'Wakeboard';
+const description = cms?.description ?? 'Salta la estela con la tabla anclada. El deporte estrella de Lacwake.';
+const tag = cms?.tag ?? 'Intenso';
+const duration = cms?.duration;
+const minAge = cms?.minAge;
+const price = cms?.price;
+const included = cms?.included ?? [];
+const cmsBody = cms?.body ?? '';
+---
+
+<ActivityLayout
+  title={title}
+  description={description}
+  image="/assets/redesign/wakeboard.webp"
+  imageAlt="Rider de wakeboard saltando la estela de la lancha con spray de agua a contraluz"
+  tag={tag}
+  duration={duration}
+  minAge={minAge}
+  price={price}
+  included={included}
+>
+
+  <h2>Adrenalina sobre el agua</h2>
+  <p>
+    Deportes de tabla y velocidad tras la lancha. Golden hour, spray y máxima
+    intensidad para los que buscan emoción. El wakeboard es el deporte estrella
+    de Lacwake: con la tabla anclada a los pies, saltas la estela de la lancha
+    en el embalse de la Baells.
+  </p>
+
+  <p>
+    Reserva por WhatsApp y te confirmamos disponibilidad y nivel. Nuestro equipo
+    te acompaña en el agua en todo momento.
+  </p>
+
+  {cmsBody && <Fragment set:html={cmsBody} />}
+
+</ActivityLayout>
