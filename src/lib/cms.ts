@@ -1,10 +1,13 @@
 /**
- * CMS data-fetching layer with in-memory cache (TTL 5 min) and graceful fallback.
+ * CMS data-fetching layer with in-memory cache (TTL 10 s) and graceful fallback.
  * Connects to CMS_API_URL env var; uses hardcoded defaults when API is unavailable.
  */
 
 const CMS_API_URL = import.meta.env.CMS_API_URL ?? '';
-const CACHE_TTL_MS = 5 * 60 * 1000;
+// CIBA-2370: TTL 10 s para que los cambios guardados en admin se vean en la home
+// en ≤10 s (objetivo cliente Lacwake). La caché sigue absorbiendo picos de tráfico
+// dentro de la ventana de 10 s. Follow-up: purga vía webhook para publicación instantánea.
+const CACHE_TTL_MS = 10 * 1000;
 
 interface CacheEntry<T> {
   data: T;
