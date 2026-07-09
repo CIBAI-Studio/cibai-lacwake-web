@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 340" fill="none" color="#0D9488" role="img" aria-label="Rama botánica lateral">
+  <!-- Rama lateral amplia para márgenes de sección · currentColor (teal por defecto; override con CSS `color`) -->
+  <g stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.85">
+    <path d="M12 330 C 60 300, 90 250, 110 190 C 128 138, 150 92, 200 48 C 224 26, 244 16, 252 10"/>
+    <path d="M110 190 C 132 180, 156 176, 182 178"/>
+    <path d="M150 92 C 132 84, 118 70, 108 52"/>
+  </g>
+  <g fill="currentColor">
+    <g opacity="0.9">
+      <path d="M110 190 C 132 176, 158 172, 186 176 C 162 194, 134 198, 110 190 Z"/>
+      <path d="M150 92 C 132 80, 120 62, 116 42 C 138 52, 152 72, 150 92 Z"/>
+      <path d="M92 236 C 72 232, 56 220, 46 202 C 70 204, 88 216, 92 236 Z"/>
+      <path d="M176 66 C 194 58, 216 56, 236 62 C 216 78, 192 80, 176 66 Z"/>
+      <path d="M124 152 C 106 146, 94 132, 90 114 C 110 120, 122 134, 124 152 Z"/>
+      <path d="M200 48 C 214 36, 234 28, 254 26 C 240 44, 220 52, 200 48 Z"/>
+    </g>
+  </g>
+  <!-- bayas / frutos accent -->
+  <g fill="#f59e0b" opacity="0.9">
+    <circle cx="60" cy="288" r="5"/>
+    <circle cx="74" cy="300" r="4.4"/>
+    <circle cx="214" cy="30" r="4.6"/>
+  </g>
+</svg>

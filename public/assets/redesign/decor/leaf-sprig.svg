@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 200" fill="none" color="#0D9488" role="img" aria-label="Rama botánica decorativa">
+  <!-- Sprig botánico · usa currentColor para recolorear (por defecto teal #0D9488; override con CSS `color`) -->
+  <g stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+    <!-- tallo principal -->
+    <path d="M60 196 C 58 150, 62 110, 60 66 C 59 44, 60 24, 60 8" fill="none" opacity="0.9"/>
+  </g>
+  <g fill="currentColor">
+    <!-- hojas alternas (almendra + nervadura) -->
+    <g opacity="0.92">
+      <path d="M60 168 C 40 160, 30 146, 26 128 C 46 132, 58 146, 60 168 Z"/>
+      <path d="M60 150 C 80 142, 90 128, 94 110 C 74 114, 62 128, 60 150 Z"/>
+      <path d="M60 122 C 42 116, 33 104, 30 88 C 48 91, 58 103, 60 122 Z"/>
+      <path d="M60 104 C 78 98, 87 86, 90 70 C 72 73, 62 85, 60 104 Z"/>
+      <path d="M60 78 C 45 73, 38 63, 36 50 C 51 53, 59 62, 60 78 Z"/>
+      <path d="M60 62 C 75 57, 82 47, 84 34 C 69 37, 61 46, 60 62 Z"/>
+    </g>
+    <!-- brote superior -->
+    <path d="M60 40 C 55 30, 55 20, 60 10 C 65 20, 65 30, 60 40 Z" opacity="0.95"/>
+  </g>
+  <!-- nervaduras finas -->
+  <g stroke="#FAF7F2" stroke-width="1" opacity="0.5" fill="none" stroke-linecap="round">
+    <path d="M60 168 C 48 160, 40 150, 32 132"/>
+    <path d="M60 150 C 72 142, 80 132, 88 114"/>
+    <path d="M60 122 C 50 115, 44 106, 36 92"/>
+    <path d="M60 104 C 70 97, 78 88, 85 74"/>
+  </g>
+</svg>
