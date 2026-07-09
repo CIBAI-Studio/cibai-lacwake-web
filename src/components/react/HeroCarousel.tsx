@@ -160,6 +160,11 @@ export default function HeroCarousel({ slides, rotation }: Props) {
 
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const firstRenderRef = useRef(true);
+  // Intención de sonido concedida por el usuario (activación real + soundIntent=on).
+  // Persiste entre slides y entradas/salidas de viewport: una vez concedida, los
+  // nuevos slides de vídeo se mantienen SIN mutear en lugar de resetear a muted=true.
+  const userUnmutedRef = useRef(false);
+  const heroRef = useRef<HTMLDivElement | null>(null);
 
   const activeSlide = slides[active] ?? slides[0];
   const activeIsVideo = activeSlide?.background.type === 'video';
@@ -226,13 +231,17 @@ export default function HeroCarousel({ slides, rotation }: Props) {
 
   // ─── Gestión de vídeo por-slide: reproducir activo, pausar inactivos ──────────
   useEffect(() => {
-    // Reset de sonido al cambiar de slide (§5.4): evita audio fantasma.
-    setSoundOn(false);
+    // Persistencia de intención (CIBA-2368): si el usuario ya concedió activación y
+    // soundIntent=on, el slide de vídeo activo se mantiene SIN mutear al rotar. Antes
+    // se reseteaba a muted=true incondicionalmente y el audio caía en cada rotación
+    // sin recuperarse (defecto #2). Los vídeos inactivos siempre se mutean y pausan.
+    const keepSound = userUnmutedRef.current && activeSlide?.video.soundIntent === 'on';
 
     videoRefs.current.forEach((video, i) => {
       if (!video) return;
       if (i === active) {
-        video.muted = true;
+        video.muted = !(keepSound && activeIsVideo);
+        setSoundOn(keepSound && activeIsVideo);
         const p = video.play();
         if (p && typeof p.catch === 'function') p.catch(() => {});
       } else {
@@ -240,7 +249,7 @@ export default function HeroCarousel({ slides, rotation }: Props) {
         video.muted = true;
       }
     });
-  }, [active]);
+  }, [active, activeSlide, activeIsVideo]);
 
   // Mostrar el control de sonido sólo si el slide activo es vídeo reproducible.
   useEffect(() => {
@@ -261,28 +270,75 @@ export default function HeroCarousel({ slides, rotation }: Props) {
     };
   }, [active, activeIsVideo]);
 
-  // ─── Auto-unmute al primer gesto (sound_intent = on) — patrón CIBA-2201 ───────
+  // ─── Auto-unmute al primer gesto de activación real (soundIntent=on) — CIBA-2368
+  // Sólo gestos de *user-activation* según spec HTML: pointerdown/touch/keydown/click.
+  // NO scroll/wheel (defecto #1): no son activación → el navegador suprime el audio y,
+  // con listeners once+abort, un scroll quemaba el único intento dejando el hero mudo.
+  // Aquí los listeners NO son `once` y NO abortamos en un intento fallido: seguimos
+  // escuchando hasta que una activación real (navigator.userActivation) tenga éxito.
   useEffect(() => {
     if (reduced || !activeIsVideo) return;
     if (activeSlide?.video.soundIntent !== 'on') return;
+    // Ya concedida en este ciclo de vida: el efecto por-slide mantiene el unmute.
+    if (userUnmutedRef.current) return;
 
     const ac = new AbortController();
-    const unmute = () => {
+    const tryUnmute = () => {
       const video = videoRefs.current[active];
       if (!video) return;
-      if (video.muted) {
-        video.muted = false;
+      // Guard de activación: sólo desmutear ante un gesto que el navegador reconoce
+      // como user-activation. Si no está activo, NO consumimos el intento (seguimos
+      // escuchando); si el API no existe, confiamos en que el evento es un gesto válido.
+      const ua = (navigator as Navigator & { userActivation?: { isActive: boolean } })
+        .userActivation;
+      if (ua && !ua.isActive) return;
+
+      video.muted = false;
+      const p = video.play();
+      if (p && typeof p.catch === 'function') p.catch(() => {});
+      // Verificar que el unmute se mantuvo antes de retirar los listeners.
+      if (!video.muted) {
+        userUnmutedRef.current = true;
         setSoundOn(true);
-        const p = video.play();
-        if (p && typeof p.catch === 'function') p.catch(() => {});
+        ac.abort();
       }
-      ac.abort();
     };
-    for (const ev of ['pointerdown', 'touchstart', 'keydown', 'scroll', 'wheel']) {
-      document.addEventListener(ev, unmute, { once: true, passive: true, signal: ac.signal });
+    for (const ev of ['pointerdown', 'touchstart', 'touchend', 'keydown', 'click']) {
+      document.addEventListener(ev, tryUnmute, { passive: true, signal: ac.signal });
     }
     return () => ac.abort();
   }, [active, activeIsVideo, reduced, activeSlide]);
+
+  // ─── Mute/resume del hero fuera de viewport (CIBA-2368, defecto #3) ────────────
+  // Al salir del hero (usuario baja a Actividades) muteamos y pausamos el vídeo activo
+  // para no reproducir audio fuera de pantalla; al re-entrar reanudamos y mantenemos
+  // el unmute si el usuario ya concedió activación y soundIntent=on.
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        const video = videoRefs.current[active];
+        if (!video) return;
+        if (entry.isIntersecting) {
+          const keepSound =
+            userUnmutedRef.current && activeIsVideo && activeSlide?.video.soundIntent === 'on';
+          video.muted = !keepSound;
+          setSoundOn(keepSound);
+          const p = video.play();
+          if (p && typeof p.catch === 'function') p.catch(() => {});
+        } else {
+          video.muted = true;
+          video.pause();
+        }
+      },
+      { threshold: 0.25 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [active, activeIsVideo, activeSlide]);
 
   // ─── Pausa en pestaña oculta (WCAG 2.2.2) ─────────────────────────────────────
   useEffect(() => {
@@ -299,6 +355,10 @@ export default function HeroCarousel({ slides, rotation }: Props) {
     const nextOn = video.muted; // estaba muted → activar
     video.muted = !nextOn;
     setSoundOn(nextOn);
+    // El toggle manual también fija/limpia la intención persistida (CIBA-2368): si el
+    // usuario activa el sonido, se mantiene al rotar y al re-entrar al viewport; si lo
+    // silencia, deja de re-armarse.
+    userUnmutedRef.current = nextOn;
     const p = video.play();
     if (p && typeof p.catch === 'function') p.catch(() => {});
   }, [active]);
@@ -385,6 +445,7 @@ export default function HeroCarousel({ slides, rotation }: Props) {
 
   return (
     <div
+      ref={heroRef}
       className="hero-carousel"
       style={isMulti ? { touchAction: 'pan-y' } : undefined}
       onMouseEnter={isMulti ? onMouseEnter : undefined}
