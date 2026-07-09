@@ -1,0 +1,45 @@
+---
+import ActivityLayout from '../../layouts/ActivityLayout.astro';
+import { getActivityContent } from '../../lib/cms';
+
+// Semilla (CIBA-2345) = blurb/tag existentes de actividades.ts. El Board podrá
+// ampliar esta ficha vía admin (`actividad_wakesurf`) sin tocar código.
+const cms = await getActivityContent('wakesurf');
+const title = cms?.title ?? 'Wakesurf';
+const description = cms?.description ?? 'Surfea la ola de la lancha sin cuerda. Fluido, técnico y adictivo.';
+const tag = cms?.tag ?? 'Técnico';
+const duration = cms?.duration;
+const minAge = cms?.minAge;
+const price = cms?.price;
+const included = cms?.included ?? [];
+const cmsBody = cms?.body ?? '';
+---
+
+<ActivityLayout
+  title={title}
+  description={description}
+  image="/assets/redesign/wakesurf.webp"
+  imageAlt="Wakesurfista deslizándose sobre la ola de la lancha en el pantano de la Baells"
+  tag={tag}
+  duration={duration}
+  minAge={minAge}
+  price={price}
+  included={included}
+>
+
+  <h2>Adrenalina sobre el agua</h2>
+  <p>
+    Deportes de tabla y velocidad tras la lancha. Golden hour, spray y máxima
+    intensidad para los que buscan emoción. En el wakesurf surfeas la ola que
+    genera la lancha sin cuerda: un deporte fluido, técnico y adictivo sobre las
+    aguas del embalse de la Baells.
+  </p>
+
+  <p>
+    Reserva por WhatsApp y te confirmamos disponibilidad y nivel. Nuestro equipo
+    te acompaña en el agua en todo momento.
+  </p>
+
+  {cmsBody && <Fragment set:html={cmsBody} />}
+
+</ActivityLayout>

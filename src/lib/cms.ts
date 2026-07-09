@@ -199,6 +199,32 @@ export interface ActivityContent {
   body: string;
 }
 
+/**
+ * Card de actividad pilotable desde la key `home` del CMS (contrato CIBA-2343).
+ * Es un *override* opcional por-card: sólo se aplican los campos no vacíos sobre
+ * el catálogo semilla (`ACTIVITY_FAMILIES`). Sin CMS, la home se ve idéntica.
+ */
+export interface HomeActivity {
+  /** Identificador que casa con `Activity.slug` del catálogo. */
+  id: string;
+  family?: string;
+  title?: string;
+  blurb?: string;
+  tag?: string;
+  image?: string;
+  imageAlt?: string;
+  /** Enlace interno de la card (`/actividades/*`). */
+  pageHref?: string;
+  ctaType?: string;
+  ctaLabel?: string;
+  /** Mensaje WhatsApp personalizado por card (opcional). */
+  ctaWhatsappMessage?: string;
+}
+
+export interface HomeContent {
+  activities: HomeActivity[];
+}
+
 export interface ContactContent {
   title: string;
   lead: string;
@@ -646,6 +672,33 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
       included: ['Barca eléctrica', 'Chalecos salvavidas', 'Briefing de seguridad'],
       body: '',
     },
+    // ── Wake & Esquí (CIBA-2345) — semilla = blurbs/tags existentes de
+    //    actividades.ts. NO se inventan duración/precio/edad: el Board los
+    //    completará vía admin (B1/B2). description = blurb del catálogo.
+    wakeboard: {
+      title: 'Wakeboard',
+      description: 'Salta la estela con la tabla anclada. El deporte estrella de Lacwake.',
+      tag: 'Intenso',
+      body: '',
+    },
+    wakesurf: {
+      title: 'Wakesurf',
+      description: 'Surfea la ola de la lancha sin cuerda. Fluido, técnico y adictivo.',
+      tag: 'Técnico',
+      body: '',
+    },
+    wakeskate: {
+      title: 'Wakeskate',
+      description: 'La tabla suelta, tú al mando. Skate sobre agua para los más atrevidos.',
+      tag: 'Avanzado',
+      body: '',
+    },
+    'esqui-nautico': {
+      title: 'Esquí Náutico',
+      description: 'El clásico que nunca falla. Dos esquís, velocidad y pura diversión.',
+      tag: 'Clásico',
+      body: '',
+    },
   };
 
   const fb = fallbacks[slug] ?? null;
@@ -663,6 +716,43 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
     // Admin uses `features` (string[]); fallback type uses `included`
     included: (c.features as string[] | undefined) ?? (c.included as string[] | undefined) ?? fb?.included,
     body: s('body') ?? fb?.body ?? '',
+  };
+}
+
+/**
+ * Contenido editable de la home (key `home`, contrato CIBA-2343).
+ * Devuelve las cards que el Board haya definido en el CMS como *overrides*
+ * por-card sobre el catálogo semilla. Si la key no existe o no trae `activities`,
+ * devuelve `{ activities: [] }` → la home cae al catálogo hardcoded sin regresión.
+ *
+ * Nota: sólo se parsea `activities` en A1; `dividers` es alcance de A2 (CIBA-2346).
+ */
+export async function getHomeContent(): Promise<HomeContent> {
+  const c = await fetchSection('/api/content/home');
+  const rawList = Array.isArray(c?.activities) ? (c!.activities as Raw[]) : [];
+  const activities = rawList
+    .map((raw) => parseHomeActivity((raw ?? {}) as Raw))
+    .filter((a): a is HomeActivity => a !== null);
+  return { activities };
+}
+
+/** Parsea una card `home.activities[]` del CMS. Requiere `id` para casar la card. */
+function parseHomeActivity(raw: Raw): HomeActivity | null {
+  const s = (f: string) => (typeof raw[f] === 'string' ? (raw[f] as string) : undefined);
+  const id = vStr(raw.id ?? raw.slug, '');
+  if (!id) return null;
+  return {
+    id,
+    family: s('family'),
+    title: s('title'),
+    blurb: s('blurb'),
+    tag: s('tag'),
+    image: s('image'),
+    imageAlt: s('image_alt') ?? s('imageAlt'),
+    pageHref: s('page_href') ?? s('pageHref'),
+    ctaType: s('cta_type') ?? s('ctaType'),
+    ctaLabel: s('cta_label') ?? s('ctaLabel'),
+    ctaWhatsappMessage: s('cta_whatsapp_message') ?? s('ctaWhatsappMessage'),
   };
 }
 

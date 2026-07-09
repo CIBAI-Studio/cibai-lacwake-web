@@ -1,0 +1,45 @@
+---
+import ActivityLayout from '../../layouts/ActivityLayout.astro';
+import { getActivityContent } from '../../lib/cms';
+
+// Semilla (CIBA-2345) = blurb/tag existentes de actividades.ts. El Board podrá
+// ampliar esta ficha vía admin (`actividad_wakeskate`) sin tocar código.
+const cms = await getActivityContent('wakeskate');
+const title = cms?.title ?? 'Wakeskate';
+const description = cms?.description ?? 'La tabla suelta, tú al mando. Skate sobre agua para los más atrevidos.';
+const tag = cms?.tag ?? 'Avanzado';
+const duration = cms?.duration;
+const minAge = cms?.minAge;
+const price = cms?.price;
+const included = cms?.included ?? [];
+const cmsBody = cms?.body ?? '';
+---
+
+<ActivityLayout
+  title={title}
+  description={description}
+  image="/assets/redesign/wakeskate.webp"
+  imageAlt="Rider de wakeskate maniobrando sobre el agua tras la lancha"
+  tag={tag}
+  duration={duration}
+  minAge={minAge}
+  price={price}
+  included={included}
+>
+
+  <h2>Adrenalina sobre el agua</h2>
+  <p>
+    Deportes de tabla y velocidad tras la lancha. Golden hour, spray y máxima
+    intensidad para los que buscan emoción. En el wakeskate la tabla va suelta,
+    sin fijaciones: tú al mando, skate sobre agua para los más atrevidos en el
+    embalse de la Baells.
+  </p>
+
+  <p>
+    Reserva por WhatsApp y te confirmamos disponibilidad y nivel. Nuestro equipo
+    te acompaña en el agua en todo momento.
+  </p>
+
+  {cmsBody && <Fragment set:html={cmsBody} />}
+
+</ActivityLayout>

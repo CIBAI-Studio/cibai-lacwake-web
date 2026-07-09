@@ -7,10 +7,15 @@ interface Props {
   whatsappUrl: string;
   /** Tarjeta destacada (imagen más alta en pantallas amplias). */
   featured?: boolean;
+  /** Texto del botón de reserva (override CMS `cta_label`). Default "Reservar". */
+  ctaLabel?: string;
+  /** Mensaje WhatsApp personalizado (override CMS `cta_whatsapp_message`). */
+  ctaMessage?: string;
 }
 
-const { activity, whatsappUrl, featured = false } = Astro.props;
-const reserveUrl = waLink(whatsappUrl, activity.name);
+const { activity, whatsappUrl, featured = false, ctaLabel, ctaMessage } = Astro.props;
+const reserveUrl = waLink(whatsappUrl, activity.name, ctaMessage);
+const ctaText = ctaLabel && ctaLabel.trim() !== '' ? ctaLabel : 'Reservar';
 const external = activity.href.startsWith('http');
 ---
 
@@ -55,9 +60,9 @@ const external = activity.href.startsWith('http');
       class="card-cta"
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={`Reservar ${activity.name} por WhatsApp — abre en nueva pestaña`}
+      aria-label={`${ctaText} ${activity.name} por WhatsApp — abre en nueva pestaña`}
     >
-      Reservar
+      {ctaText}
       <svg class="card-cta-arrow" aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
