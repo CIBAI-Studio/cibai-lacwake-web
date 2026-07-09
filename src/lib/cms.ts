@@ -253,6 +253,27 @@ export interface SiteConfig {
   schedule: string;
 }
 
+/**
+ * Divisores de sección configurables (contrato `home.dividers`, CIBA-2346).
+ * Un `style` + `color` globales y la lista `between` de fronteras activas.
+ */
+export type DividerStyle = 'wave' | 'slant' | 'image' | 'none';
+export type DividerBoundary = 'hero-activities' | 'activities-why' | 'why-cta' | 'footer';
+
+export interface HomeDividers {
+  /** Forma del divisor. `none` = frontera plana (sin divisor). */
+  style: DividerStyle;
+  /** Ruta al SVG cuando `style==='image'` (assets en `/assets/dividers/`). */
+  asset: string;
+  /**
+   * Override global del color de relleno. Vacío = derivar por frontera el color
+   * de la sección entrante (por defecto, coherente por bloque).
+   */
+  color: string;
+  /** Fronteras donde se pinta divisor. */
+  between: DividerBoundary[];
+}
+
 // ─── Fallbacks ───────────────────────────────────────────────────────────────
 
 const FALLBACK_MENU: MenuItem[] = [
@@ -767,5 +788,58 @@ export async function getLegalContent(page: string): Promise<LegalContent | null
     // Admin LegalEditor saves HTML under the `html` field
     body: s('body') ?? s('html') ?? '',
     lastUpdated: s('last_updated') ?? s('lastUpdated') ?? '',
+  };
+}
+
+// ─── Divisores de sección (contrato `home.dividers`, CIBA-2346) ───────────────
+
+const DIVIDER_BOUNDARIES: readonly DividerBoundary[] = [
+  'hero-activities',
+  'activities-why',
+  'why-cta',
+  'footer',
+] as const;
+
+/**
+ * Por defecto los divisores están ACTIVOS (onda en las cuatro fronteras) para
+ * que la home no muestre cortes planos aunque el CMS aún no exponga `home.dividers`
+ * (el admin «Home» llega en B1/CIBA-2347). El Board puede apagarlos con
+ * `style:'none'` o recortar `between` desde el CMS. `color:''` ⇒ cada frontera
+ * usa el color de su sección entrante (ver SectionDivider).
+ */
+const FALLBACK_DIVIDERS: HomeDividers = {
+  style: 'wave',
+  asset: '/assets/dividers/wave.svg',
+  color: '',
+  between: [...DIVIDER_BOUNDARIES],
+};
+
+function parseDividerBetween(v: unknown): DividerBoundary[] {
+  if (!Array.isArray(v)) return [...DIVIDER_BOUNDARIES];
+  const valid = v.filter(
+    (x): x is DividerBoundary => typeof x === 'string' && (DIVIDER_BOUNDARIES as readonly string[]).includes(x),
+  );
+  // Sin entradas válidas ⇒ conserva el default (no dejamos la home sin divisores
+  // por un array mal formado); un array vacío explícito sí desactiva todo.
+  return v.length > 0 ? valid : [...DIVIDER_BOUNDARIES];
+}
+
+/**
+ * Config de divisores de la home. Lee `home.dividers` del CMS (key `home`,
+ * contrato CIBA-2343/2346) con validación defensiva y fallback resiliente.
+ * Si la key no existe o `dividers` está ausente ⇒ `FALLBACK_DIVIDERS`.
+ */
+export async function getHomeDividers(): Promise<HomeDividers> {
+  const c = await fetchSection('/api/content/home');
+  const raw = (c?.dividers ?? null) as Raw | null;
+  if (!raw || typeof raw !== 'object') return FALLBACK_DIVIDERS;
+
+  const color = raw.color;
+  return {
+    style: vEnum(raw.style, ['wave', 'slant', 'image', 'none'] as const, FALLBACK_DIVIDERS.style),
+    asset: vStr(raw.asset, FALLBACK_DIVIDERS.asset),
+    // `color` opcional: hex de 6 dígitos o cadena vacía (= derivar por frontera).
+    color: typeof color === 'string' && HEX_RE.test(color.trim()) ? color.trim() : '',
+    between: parseDividerBetween(raw.between),
   };
 }

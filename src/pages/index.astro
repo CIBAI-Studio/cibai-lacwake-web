@@ -2,14 +2,40 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import ActivitiesSection from '../components/sections/ActivitiesSection.astro';
-import { getHeroSlides, getWhyContent, getCtaContent, getSiteConfig } from '../lib/cms';
+import SectionDivider from '../components/SectionDivider.astro';
+import { getHeroSlides, getWhyContent, getCtaContent, getSiteConfig, getHomeDividers } from '../lib/cms';
+import type { DividerBoundary } from '../lib/cms';
 
-const [heroCarousel, why, cta, siteConfig] = await Promise.all([
+const [heroCarousel, why, cta, siteConfig, dividers] = await Promise.all([
   getHeroSlides(),
   getWhyContent(),
   getCtaContent(),
   getSiteConfig(),
+  getHomeDividers(),
 ]);
+
+/* Banda de transición por costura: `bg` = color de la sección SALIENTE (arriba),
+   `color` = relleno de la forma = color de la sección ENTRANTE (abajo). Así la
+   onda/inclinación funde A→B sin cortes planos. El CMS puede forzar un relleno
+   global único vía `home.dividers.color`. Colores tomados del CSS real de cada
+   sección (design system claro). (CIBA-2346) */
+const SECTION_INCOMING_COLOR: Record<DividerBoundary, string> = {
+  'hero-activities': '#fdfcfa', // → Actividades (fondo papel)
+  'activities-why': '#faf7f2', // → Features/Why (cream)
+  'why-cta': '#1c818f', // → CTA aguamarina (--color-cta-aqua)
+  footer: '#faf7f2', // → Footer (cream, --color-cream)
+};
+const SECTION_OUTGOING_COLOR: Record<DividerBoundary, string> = {
+  'hero-activities': '#082f49', // Hero ↑ (lake-950)
+  'activities-why': '#fdfcfa', // Actividades ↑
+  'why-cta': '#faf7f2', // Features/Why ↑
+  footer: '#1c818f', // CTA aguamarina ↑
+};
+
+const showDivider = (b: DividerBoundary) =>
+  dividers.style !== 'none' && dividers.between.includes(b);
+const dividerColor = (b: DividerBoundary) => dividers.color || SECTION_INCOMING_COLOR[b];
+const dividerBg = (b: DividerBoundary) => SECTION_OUTGOING_COLOR[b];
 
 /* Iconos SVG inline para las features (anti-emoji: CIBA-2304) */
 const FEATURE_ICONS = [
@@ -47,8 +73,29 @@ const FEATURE_ICONS = [
   <!-- Hero fullscreen (carrusel multi-slide, CIBA-2217) — NO tocar -->
   <Hero slides={heroCarousel.slides} rotation={heroCarousel.rotation} />
 
+  {showDivider('hero-activities') && (
+    <SectionDivider
+      style={dividers.style}
+      color={dividerColor('hero-activities')}
+      fromColor={dividerBg('hero-activities')}
+      asset={dividers.asset}
+      boundary="hero-activities"
+    />
+  )}
+
   <!-- Actividades: catálogo numerado 01/02/03 -->
   <ActivitiesSection whatsappUrl={siteConfig.whatsappUrl} />
+
+  {showDivider('activities-why') && (
+    <SectionDivider
+      style={dividers.style}
+      color={dividerColor('activities-why')}
+      fromColor={dividerBg('activities-why')}
+      asset={dividers.asset}
+      flip
+      boundary="activities-why"
+    />
+  )}
 
   <!-- Features: Naturaleza, agua y aventura -->
   <section class="features-section" aria-labelledby="features-title">
@@ -135,6 +182,16 @@ const FEATURE_ICONS = [
     </div>
   </section>
 
+  {showDivider('why-cta') && (
+    <SectionDivider
+      style={dividers.style}
+      color={dividerColor('why-cta')}
+      fromColor={dividerBg('why-cta')}
+      asset={dividers.asset}
+      boundary="why-cta"
+    />
+  )}
+
   <!-- Franja de AGUA aguamarina antes del footer (punto 5) -->
   <section class="cta-banner" aria-labelledby="cta-title">
     <!-- Textura de agua/olas acuarela (decorativa, no bajo el texto) -->
@@ -206,6 +263,17 @@ const FEATURE_ICONS = [
       </div>
     </div>
   </section>
+
+  {showDivider('footer') && (
+    <SectionDivider
+      style={dividers.style}
+      color={dividerColor('footer')}
+      fromColor={dividerBg('footer')}
+      asset={dividers.asset}
+      flip
+      boundary="footer"
+    />
+  )}
 </BaseLayout>
 
 <style>
