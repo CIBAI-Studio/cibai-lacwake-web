@@ -1,0 +1,130 @@
+---
+/**
+ * SectionDivider — divisor SVG configurable entre secciones de la home (CIBA-2346).
+ *
+ * Modelo «banda a dos tonos» (robusto, sin solapes ni CLS):
+ *  - El FONDO de la banda usa `fromColor` = color de la sección SALIENTE (arriba).
+ *  - La FORMA SVG se rellena con `color` = color de la sección ENTRANTE (abajo),
+ *    vía `currentColor`, y cierra por el borde inferior.
+ *  Así el borde superior de la banda continúa la sección anterior y el inferior
+ *  se funde con la siguiente: la curva/inclinación «vierte» un color sobre el otro
+ *  sin necesidad de márgenes negativos ni z-index frágiles.
+ *
+ * Assets: se inlinan los SVG del diseñador (`/assets/dividers/*.svg`, CIBA-2344)
+ * con `set:html`. Es obligatorio inlinarlos —y NO usar `<img>`/`background-image`—
+ * porque usan `fill="currentColor"` y ese caveat del design system claro solo
+ * resuelve el color con SVG inline (memoria: design-system claro rediseño home).
+ *
+ * Estilos:
+ *  - `wave`  → onda suave (coherente con el wave del footer)      → wave.svg
+ *  - `slant` → borde inclinado (diagonal)                          → slant.svg
+ *  - `image` → SVG del diseñador indicado en `asset` (p.ej. wave-layered.svg)
+ *  - `none`  → no renderiza nada (frontera plana)
+ *
+ * Accesibilidad/rendimiento: puramente decorativo (`aria-hidden`,
+ * `role="presentation"`), altura fija por breakpoint (sin CLS),
+ * `preserveAspectRatio="none"` para estirar a todo el ancho. No anima nada.
+ */
+import type { DividerStyle } from '../lib/cms';
+
+interface Props {
+  /** Forma del divisor. */
+  style: DividerStyle;
+  /** Color de la sección ENTRANTE (relleno de la forma, vía currentColor). */
+  color: string;
+  /** Color de la sección SALIENTE (fondo de la banda, tapa la costura superior). */
+  fromColor: string;
+  /** Ruta pública del SVG cuando `style==='image'` (ej. `/assets/dividers/wave-layered.svg`). */
+  asset?: string;
+  /** Invierte la dirección horizontal (onda/inclinación). */
+  flip?: boolean;
+  /** Etiqueta de la frontera (para depurar; no se renderiza como texto). */
+  boundary?: string;
+}
+
+const { style, color, fromColor, asset = '', flip = false, boundary = '' } = Astro.props;
+
+// SVGs del diseñador inlinados como raw (currentColor). Se resuelven en build.
+const rawSvgs = import.meta.glob('/public/assets/dividers/*.svg', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+}) as Record<string, string>;
+
+const svgByName: Record<string, string> = {};
+for (const [path, raw] of Object.entries(rawSvgs)) {
+  const name = path.split('/').pop();
+  if (name) svgByName[name] = raw;
+}
+
+/** Mapea cada `style` a su fichero. `image` toma el basename de `asset`. */
+function fileForStyle(s: DividerStyle): string | null {
+  switch (s) {
+    case 'wave':
+      return 'wave.svg';
+    case 'slant':
+      return 'slant.svg';
+    case 'image':
+      return asset.split('/').pop() || 'wave.svg';
+    case 'none':
+    default:
+      return null;
+  }
+}
+
+const file = fileForStyle(style);
+// Degradado seguro: si falta el asset pedido, cae a la onda base; nunca rompe.
+const svg = file ? (svgByName[file] ?? svgByName['wave.svg'] ?? null) : null;
+---
+
+{svg && (
+  <div
+    class:list={['section-divider', { 'is-flip': flip }]}
+    role="presentation"
+    aria-hidden="true"
+    data-divider-style={style}
+    data-boundary={boundary}
+    style={`--divider-from: ${fromColor}; --divider-to: ${color};`}
+    set:html={svg}
+  />
+)}
+
+<style>
+  .section-divider {
+    display: block;
+    width: 100%;
+    height: 40px;
+    line-height: 0;
+    pointer-events: none;
+    overflow: hidden;
+    /* Fondo = sección saliente; el SVG (currentColor) = sección entrante. */
+    background-color: var(--divider-from);
+    color: var(--divider-to);
+    /* Funde el borde inferior con la sección siguiente sin hairline. */
+    margin-bottom: -1px;
+  }
+
+  @media (min-width: 768px) {
+    .section-divider {
+      height: 64px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .section-divider {
+      height: 84px;
+    }
+  }
+
+  /* El SVG del diseñador trae width="100%" pero no height: lo forzamos a la banda. */
+  .section-divider :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Invierte la onda/inclinación horizontalmente. */
+  .section-divider.is-flip :global(svg) {
+    transform: scaleX(-1);
+  }
+</style>
