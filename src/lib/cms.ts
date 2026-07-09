@@ -1,10 +1,12 @@
 /**
- * CMS data-fetching layer with in-memory cache (TTL 5 min) and graceful fallback.
+ * CMS data-fetching layer with in-memory cache (TTL 10 s) and graceful fallback.
  * Connects to CMS_API_URL env var; uses hardcoded defaults when API is unavailable.
  */
 
 const CMS_API_URL = import.meta.env.CMS_API_URL ?? '';
-const CACHE_TTL_MS = 5 * 60 * 1000;
+// TTL corto: la home es SSR y lee el CMS en vivo. Guardar en admin actualiza el CMS
+// al instante; con 10 s el SSR refleja el cambio en ≤10 s sin martillar la API (CIBA-2363).
+const CACHE_TTL_MS = 10 * 1000;
 
 interface CacheEntry<T> {
   data: T;

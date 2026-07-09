@@ -267,19 +267,31 @@ export default function HeroCarousel({ slides, rotation }: Props) {
     if (activeSlide?.video.soundIntent !== 'on') return;
 
     const ac = new AbortController();
+    let settled = false;
+    // Sólo gestos de activación de usuario válidos para la política de autoplay-con-audio.
+    // scroll/wheel NO son user-activation válidos (Chrome/Safari): activarían el unmute
+    // sin que el navegador permita el audio y, con { once }, quemarían el intento para siempre.
     const unmute = () => {
+      if (settled) return;
       const video = videoRefs.current[active];
-      if (!video) return;
-      if (video.muted) {
-        video.muted = false;
-        setSoundOn(true);
-        const p = video.play();
-        if (p && typeof p.catch === 'function') p.catch(() => {});
-      }
-      ac.abort();
+      if (!video || !video.muted) return; // sin vídeo o ya en proceso
+      video.muted = false;
+      const finish = () => {
+        if (!video.muted && !video.paused) {
+          settled = true;
+          setSoundOn(true);
+          ac.abort(); // el audio arrancó de verdad → consumir listeners
+        } else {
+          video.muted = true; // no prendió → re-mutear y esperar el siguiente gesto válido
+        }
+      };
+      const p = video.play();
+      if (p && typeof p.then === 'function') p.then(finish).catch(() => { video.muted = true; });
+      else finish();
     };
-    for (const ev of ['pointerdown', 'touchstart', 'keydown', 'scroll', 'wheel']) {
-      document.addEventListener(ev, unmute, { once: true, passive: true, signal: ac.signal });
+    // No usamos { once: true }: mantenemos los listeners hasta confirmar que el audio arrancó.
+    for (const ev of ['pointerdown', 'touchstart', 'keydown', 'click']) {
+      document.addEventListener(ev, unmute, { passive: true, signal: ac.signal });
     }
     return () => ac.abort();
   }, [active, activeIsVideo, reduced, activeSlide]);
