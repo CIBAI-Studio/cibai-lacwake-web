@@ -52,23 +52,49 @@ const FEATURE_ICONS = [
 
   <!-- Features: Naturaleza, agua y aventura -->
   <section class="features-section" aria-labelledby="features-title">
-    <!-- Decoración botánica izq -->
+    <!-- Textura de agua/olas acuarela lateral (punto 3) -->
     <img
-      src="/assets/redesign/decor/botanical-branch.svg"
+      src="/assets/redesign/decor/agua-lateral.png"
+      alt=""
+      aria-hidden="true"
+      class="features-water"
+      width="620"
+      height="620"
+      loading="lazy"
+      decoding="async"
+    />
+    <!-- Rama botánica teal nítida, margen izquierdo (punto 3) -->
+    <img
+      src="/assets/redesign/decor/botanica-teal.png"
       alt=""
       aria-hidden="true"
       class="features-decor features-decor--left"
-      width="200"
-      height="320"
+      width="360"
+      height="620"
+      loading="lazy"
+      decoding="async"
     />
-    <!-- Decoración botánica der -->
+    <!-- Rama olivo+bayas nítida, margen derecho (punto 3) -->
     <img
-      src="/assets/redesign/decor/leaf-sprig.svg"
+      src="/assets/redesign/decor/botanica-margen.png"
       alt=""
       aria-hidden="true"
       class="features-decor features-decor--right"
-      width="140"
-      height="200"
+      width="360"
+      height="620"
+      loading="lazy"
+      decoding="async"
+    />
+    <!-- Garza en la orilla, esquina inferior-izquierda (punto 3) -->
+    <img
+      src="/assets/redesign/decor/garza-orilla.png"
+      alt=""
+      aria-hidden="true"
+      class="features-garza"
+      width="420"
+      height="520"
+      loading="lazy"
+      decoding="async"
     />
 
     <div class="container-site">
@@ -109,24 +135,49 @@ const FEATURE_ICONS = [
     </div>
   </section>
 
-  <!-- CTA banner turquesa full-width -->
+  <!-- Franja de AGUA aguamarina antes del footer (punto 5) -->
   <section class="cta-banner" aria-labelledby="cta-title">
-    <!-- Ilustración acuarela de fondo -->
+    <!-- Textura de agua/olas acuarela (decorativa, no bajo el texto) -->
     <img
-      src="/assets/redesign/decor/watercolor-blob.svg"
+      src="/assets/redesign/decor/agua-lateral.png"
       alt=""
       aria-hidden="true"
-      class="cta-blob"
-      width="480"
-      height="480"
+      class="cta-water cta-water--left"
+      width="520"
+      height="520"
+      loading="lazy"
+      decoding="async"
     />
     <img
-      src="/assets/redesign/decor/water-waves.svg"
+      src="/assets/redesign/decor/agua-lateral.png"
       alt=""
       aria-hidden="true"
-      class="cta-waves"
-      width="600"
-      height="200"
+      class="cta-water cta-water--right"
+      width="520"
+      height="520"
+      loading="lazy"
+      decoding="async"
+    />
+    <!-- Ramas botánicas en las esquinas (como la referencia) -->
+    <img
+      src="/assets/redesign/decor/botanica-teal.png"
+      alt=""
+      aria-hidden="true"
+      class="cta-leaf cta-leaf--left"
+      width="300"
+      height="520"
+      loading="lazy"
+      decoding="async"
+    />
+    <img
+      src="/assets/redesign/decor/botanica-margen.png"
+      alt=""
+      aria-hidden="true"
+      class="cta-leaf cta-leaf--right"
+      width="300"
+      height="520"
+      loading="lazy"
+      decoding="async"
     />
 
     <div class="container-site">
@@ -174,38 +225,78 @@ const FEATURE_ICONS = [
     }
   }
 
-  /* Decoraciones botánicas */
+  /* Textura de agua acuarela lateral (punto 3) */
+  .features-water {
+    position: absolute;
+    left: -6rem;
+    top: -4rem;
+    width: 300px;
+    max-width: 45vw;
+    opacity: 0.4;
+    pointer-events: none;
+    user-select: none;
+    mix-blend-mode: multiply;
+  }
+
+  /* Decoraciones botánicas nítidas (raster, punto 3) */
   .features-decor {
     position: absolute;
     pointer-events: none;
-    opacity: 0.22;
+    opacity: 0.9;
     user-select: none;
+    z-index: 0;
   }
 
   .features-decor--left {
-    left: -3rem;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 160px;
+    left: -5rem;
+    top: 3rem;
+    width: 190px;
+    max-width: 34vw;
   }
 
   .features-decor--right {
-    right: -1.5rem;
-    bottom: 2rem;
-    width: 120px;
-    transform: rotate(-20deg);
+    right: -4rem;
+    bottom: 1rem;
+    width: 200px;
+    max-width: 36vw;
+    transform: scaleX(-1);
+  }
+
+  /* Garza en la orilla — esquina inferior-izquierda (punto 3) */
+  .features-garza {
+    position: absolute;
+    left: 0.5rem;
+    bottom: 0;
+    width: 150px;
+    max-width: 40vw;
+    opacity: 0.95;
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
   }
 
   @media (min-width: 1024px) {
     .features-decor--left {
-      width: 200px;
-      left: -1rem;
-      opacity: 0.28;
+      width: 250px;
+      left: -3rem;
     }
     .features-decor--right {
-      width: 160px;
-      right: 0;
+      width: 260px;
+      right: -2.5rem;
     }
+    .features-garza {
+      width: 230px;
+      left: 1.5rem;
+    }
+    .features-water {
+      width: 420px;
+    }
+  }
+
+  /* El contenido va por encima de los decorativos */
+  .features-section .container-site {
+    position: relative;
+    z-index: 1;
   }
 
   /* Layout split: texto izq + grid der */
@@ -230,7 +321,7 @@ const FEATURE_ICONS = [
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: #92400e;
+    color: var(--color-teal-ink); /* teal-700 sobre cream: AA 5.12 */
     margin-bottom: 0.875rem;
   }
 
@@ -261,8 +352,8 @@ const FEATURE_ICONS = [
     display: inline-flex;
     align-items: center;
     padding: 0.875rem 2rem;
-    background: #f59e0b;
-    color: #1c1917;
+    background: var(--color-sun-pastel); /* naranja pastel (punto 7) */
+    color: #1e293b; /* texto oscuro obligatorio — blanco falla AA (regla dura §D) */
     font-weight: 600;
     font-size: 1rem;
     border-radius: 9999px;
@@ -272,7 +363,7 @@ const FEATURE_ICONS = [
   }
 
   .btn-amber:hover {
-    background: #d97706;
+    background: var(--color-sun-pastel-hover);
     transform: translateY(-2px);
   }
 
@@ -304,13 +395,13 @@ const FEATURE_ICONS = [
     width: 2.75rem;
     height: 2.75rem;
     background: #ffffff;
-    border: 1px solid #e7e5e4;
+    border: 1px solid #d3e7e4;
     border-radius: 0.875rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #d97706;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    color: var(--color-teal-ink); /* iconos grid Naturaleza en teal (punto 7) */
+    box-shadow: 0 1px 4px rgba(15, 118, 110, 0.08);
   }
 
   .feature-content {
@@ -339,7 +430,15 @@ const FEATURE_ICONS = [
   .cta-banner {
     position: relative;
     padding-block: 5rem;
-    background: #0f766e; /* teal-700: blanco sobre él da 5.0:1 (WCAG AA) */
+    /* Ancla sólida #1C818F garantiza AA para texto blanco (4.58) a cualquier
+       tamaño. El aguamarina claro decorativo se confina al borde superior
+       (fuera del bloque de texto centrado) — regla dura §D pt 5. */
+    background-color: var(--color-cta-aqua);
+    background-image: radial-gradient(
+      85% 55% at 50% -12%,
+      var(--color-cta-aqua-lite) 0%,
+      rgba(28, 129, 143, 0) 62%
+    );
     overflow: hidden;
   }
 
@@ -349,30 +448,44 @@ const FEATURE_ICONS = [
     }
   }
 
-  /* Decoraciones de fondo */
-  .cta-blob {
+  /* Textura de agua acuarela en los laterales (decorativa) */
+  .cta-water {
     position: absolute;
-    right: -5%;
     top: 50%;
     transform: translateY(-50%);
-    width: 420px;
-    opacity: 0.12;
+    width: 340px;
+    max-width: 40vw;
+    opacity: 0.28;
+    pointer-events: none;
+    user-select: none;
+    mix-blend-mode: screen;
+  }
+  .cta-water--left { left: -4rem; }
+  .cta-water--right { right: -4rem; transform: translateY(-50%) scaleX(-1); }
+
+  /* Ramas botánicas en las esquinas (como la referencia) */
+  .cta-leaf {
+    position: absolute;
+    width: 170px;
+    max-width: 30vw;
+    opacity: 0.85;
     pointer-events: none;
     user-select: none;
   }
+  .cta-leaf--left { left: -3rem; bottom: -1.5rem; }
+  .cta-leaf--right { right: -3rem; top: -1.5rem; transform: scaleX(-1) rotate(4deg); }
 
-  .cta-waves {
-    position: absolute;
-    left: -2%;
-    bottom: -1rem;
-    width: 50%;
-    opacity: 0.1;
-    pointer-events: none;
-    user-select: none;
+  @media (min-width: 1024px) {
+    .cta-leaf { width: 220px; }
+  }
+
+  @media (max-width: 639px) {
+    .cta-leaf { display: none; }
   }
 
   .cta-inner {
     position: relative;
+    z-index: 1;
     text-align: center;
     max-width: 680px;
     margin-inline: auto;
@@ -403,13 +516,13 @@ const FEATURE_ICONS = [
     margin-bottom: 1.5rem;
   }
 
-  /* Botón primario: amber sobre teal */
+  /* Botón primario: naranja pastel sobre aguamarina (punto 7) */
   .btn-cta-primary {
     display: inline-flex;
     align-items: center;
     padding: 0.9rem 2rem;
-    background: #f59e0b;
-    color: #1c1917;
+    background: var(--color-sun-pastel);
+    color: #1e293b; /* texto oscuro obligatorio (regla dura §D) */
     font-weight: 700;
     font-size: 1rem;
     border-radius: 9999px;
@@ -419,7 +532,7 @@ const FEATURE_ICONS = [
   }
 
   .btn-cta-primary:hover {
-    background: #d97706;
+    background: var(--color-sun-pastel-hover);
     transform: translateY(-2px);
   }
 

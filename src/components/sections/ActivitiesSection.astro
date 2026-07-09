@@ -1,6 +1,8 @@
 ---
 import ActivityTile from '../ActivityTile.astro';
 import { ACTIVITY_FAMILIES, ACTIVITY_COUNT } from '../../config/actividades';
+// Line-art recoloreable (currentColor) → inline para heredar el teal (punto 4)
+import montanasSolPuente from '../../../public/assets/redesign/decor/montanas-sol-puente.svg?raw';
 
 interface Props {
   whatsappUrl: string;
@@ -10,14 +12,31 @@ const { whatsappUrl } = Astro.props;
 ---
 
 <section class="activities" id="actividades" aria-labelledby="activities-title">
-  <!-- Decoración botánica -->
+  <!-- Line-art montañas + sol + puente Baells, esquina sup-derecha (punto 4).
+       Inline + currentColor teal + opacidad baja como lavado de fondo. -->
+  <div class="decor decor--mountains" aria-hidden="true" set:html={montanasSolPuente} />
+
+  <!-- Rama botánica teal, margen izquierdo a lo largo de la sección (punto 3) -->
   <img
-    src="/assets/redesign/decor/leaf-sprig.svg"
+    src="/assets/redesign/decor/botanica-teal.png"
     alt=""
     aria-hidden="true"
-    class="decor decor--top-right"
-    width="180"
-    height="180"
+    class="decor decor--left"
+    width="360"
+    height="620"
+    loading="lazy"
+    decoding="async"
+  />
+  <!-- Rama olivo+bayas, margen derecho (punto 3) -->
+  <img
+    src="/assets/redesign/decor/botanica-margen.png"
+    alt=""
+    aria-hidden="true"
+    class="decor decor--right"
+    width="360"
+    height="620"
+    loading="lazy"
+    decoding="async"
   />
 
   <div class="container-site">
@@ -83,7 +102,10 @@ const { whatsappUrl } = Astro.props;
   .activities {
     position: relative;
     padding-block: 5rem;
-    background: #ffffff;
+    /* Fondo claro tipo papel/acuarela (punto 4) */
+    background:
+      radial-gradient(60% 40% at 88% 6%, #eaf3f1 0%, rgba(234, 243, 241, 0) 60%),
+      #fdfcfa;
     overflow: hidden;
   }
 
@@ -97,22 +119,54 @@ const { whatsappUrl } = Astro.props;
   .decor {
     position: absolute;
     pointer-events: none;
-    opacity: 0.28;
     user-select: none;
+    z-index: 0;
   }
 
-  .decor--top-right {
-    top: -1rem;
-    right: -2rem;
-    width: 160px;
-    transform: rotate(15deg);
+  /* Line-art montañas+sol+puente (inline SVG, recoloreado a teal) */
+  .decor--mountains {
+    top: -0.5rem;
+    right: -1rem;
+    width: 300px;
+    max-width: 55vw;
+    color: var(--color-teal-ink); /* currentColor del line-art */
+    opacity: 0.55;
   }
+  .decor--mountains :global(svg) {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Ramas botánicas nítidas en los márgenes (raster) */
+  .decor--left,
+  .decor--right {
+    top: 34%;
+    width: 150px;
+    max-width: 28vw;
+    opacity: 0.8;
+  }
+  .decor--left { left: -5rem; }
+  .decor--right { right: -5rem; bottom: 8%; top: auto; transform: scaleX(-1); }
 
   @media (min-width: 1024px) {
-    .decor--top-right {
-      width: 220px;
-      right: 2rem;
+    .decor--mountains {
+      width: 420px;
+      right: 1.5rem;
     }
+    .decor--left { width: 210px; left: -3.5rem; }
+    .decor--right { width: 220px; right: -3.5rem; }
+  }
+
+  @media (max-width: 767px) {
+    .decor--left,
+    .decor--right { display: none; }
+  }
+
+  /* El contenido va por encima de los decorativos */
+  .activities > .container-site {
+    position: relative;
+    z-index: 1;
   }
 
   /* ── Cabecera ──────────────────────────────────────────────── */
@@ -126,7 +180,7 @@ const { whatsappUrl } = Astro.props;
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: #92400e;
+    color: var(--color-teal-ink); /* AA 5.12 sobre papel claro */
     margin-bottom: 0.875rem;
   }
 
@@ -175,10 +229,10 @@ const { whatsappUrl } = Astro.props;
     line-height: 0.9;
     letter-spacing: -0.05em;
     color: transparent;
-    -webkit-text-stroke: 1.5px #f59e0b;
+    -webkit-text-stroke: 1.5px var(--color-teal-pastel); /* tono frío pastel (punto 7) */
     flex-shrink: 0;
     margin-top: 0.25rem;
-    opacity: 0.7;
+    opacity: 0.85;
   }
 
   .family-heading {
@@ -190,7 +244,7 @@ const { whatsappUrl } = Astro.props;
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #92400e;
+    color: var(--color-teal-ink); /* AA 5.12 */
     margin-bottom: 0.4rem;
   }
 
