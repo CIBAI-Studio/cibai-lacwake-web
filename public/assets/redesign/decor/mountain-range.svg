@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 260" preserveAspectRatio="none" fill="none" role="img" aria-label="Silueta de montañas del Berguedà">
+  <!-- Silueta de la serralada (Baells / Berguedà) · 3 planos de profundidad -->
+  <!-- plano lejano -->
+  <path d="M0 200 L120 150 L240 185 L360 120 L500 178 L640 128 L780 176 L920 132 L1080 182 L1220 140 L1340 178 L1440 150 L1440 260 L0 260 Z"
+        fill="#0D9488" opacity="0.16"/>
+  <!-- plano medio -->
+  <path d="M0 226 L160 172 L300 214 L440 156 L600 210 L760 162 L900 208 L1060 168 L1220 212 L1360 174 L1440 202 L1440 260 L0 260 Z"
+        fill="#0D9488" opacity="0.28"/>
+  <!-- plano cercano -->
+  <path d="M0 260 L0 236 L200 198 L380 240 L560 200 L760 242 L960 204 L1160 244 L1360 208 L1440 234 L1440 260 Z"
+        fill="#0D9488" opacity="0.45"/>
+  <!-- sol -->
+  <circle cx="1080" cy="96" r="34" fill="#f59e0b" opacity="0.65"/>
+</svg>

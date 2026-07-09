@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 220" preserveAspectRatio="none" fill="none" role="img" aria-label="Ondas de agua decorativas">
+  <!-- Ondas de agua a todo ancho · fondo de footer / separador de sección -->
+  <path d="M0 96 C 180 60, 360 60, 540 96 C 720 132, 900 132, 1080 96 C 1260 60, 1440 60, 1440 96 L1440 220 L0 220 Z"
+        fill="#0D9488" opacity="0.10"/>
+  <path d="M0 128 C 200 92, 400 92, 600 128 C 800 164, 1000 164, 1200 128 C 1320 106, 1440 110, 1440 128 L1440 220 L0 220 Z"
+        fill="#0D9488" opacity="0.16"/>
+  <path d="M0 160 C 220 128, 420 128, 640 160 C 860 192, 1040 192, 1260 160 C 1360 146, 1440 150, 1440 160 L1440 220 L0 220 Z"
+        fill="#0D9488" opacity="0.24"/>
+  <!-- reflejos de luz sun -->
+  <g stroke="#f59e0b" stroke-width="2" opacity="0.28" stroke-linecap="round">
+    <path d="M120 112 C 160 104, 200 104, 240 112" fill="none"/>
+    <path d="M980 118 C 1020 110, 1060 110, 1100 118" fill="none"/>
+  </g>
+</svg>

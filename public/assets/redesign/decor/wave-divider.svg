@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 80" preserveAspectRatio="none" fill="none" color="#FAF7F2" role="presentation" aria-hidden="true">
+  <!-- Separador de sección suave · rellena con el color de la sección siguiente vía CSS `color` (por defecto cream) -->
+  <path d="M0 40 C 240 8, 480 8, 720 40 C 960 72, 1200 72, 1440 40 L1440 80 L0 80 Z"
+        fill="currentColor"/>
+</svg>

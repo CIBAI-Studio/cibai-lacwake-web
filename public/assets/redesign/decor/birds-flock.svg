@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 100" fill="none" color="#0D9488" role="img" aria-label="Bandada de aves">
+  <!-- Bandada de aves (gaviotas) · trazo simple, currentColor (override con CSS `color`) -->
+  <g stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none" opacity="0.75">
+    <path d="M18 40 C 26 30, 32 30, 38 40 C 44 30, 50 30, 58 40"/>
+    <path d="M78 26 C 85 17, 90 17, 95 26 C 100 17, 105 17, 112 26"/>
+    <path d="M132 52 C 140 42, 146 42, 152 52 C 158 42, 164 42, 172 52"/>
+    <path d="M100 62 C 106 55, 110 55, 115 62 C 120 55, 124 55, 130 62"/>
+    <path d="M182 34 C 188 27, 192 27, 196 34 C 200 27, 204 27, 210 34"/>
+  </g>
+</svg>

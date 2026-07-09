@@ -1,16 +1,8 @@
 ---
-/**
- * Sección de actividades — home rediseñada (CIBA-2173).
- * Muestra las 11 actividades del catálogo real de reservas.lacwake.es,
- * agrupadas por familia (Kayak / Wake & Esquí / Paseos & Paddle).
- * Estética moderna/brutal: fondo oscuro, tipografía display grande,
- * números de familia sobredimensionados, grid asimétrico.
- */
 import ActivityTile from '../ActivityTile.astro';
 import { ACTIVITY_FAMILIES, ACTIVITY_COUNT } from '../../config/actividades';
 
 interface Props {
-  /** URL base de WhatsApp (del CMS/siteConfig) para los botones Reservar. */
   whatsappUrl: string;
 }
 
@@ -18,20 +10,34 @@ const { whatsappUrl } = Astro.props;
 ---
 
 <section class="activities" id="actividades" aria-labelledby="activities-title">
+  <!-- Decoración botánica -->
+  <img
+    src="/assets/redesign/decor/leaf-sprig.svg"
+    alt=""
+    aria-hidden="true"
+    class="decor decor--top-right"
+    width="180"
+    height="180"
+  />
+
   <div class="container-site">
+
+    <!-- Cabecera de sección -->
     <header class="activities-head">
-      <div class="activities-label">Catálogo completo</div>
+      <div class="activities-overline">Catálogo completo</div>
       <h2 class="activities-title" id="activities-title">
         {ACTIVITY_COUNT} formas de vivir el agua
       </h2>
       <p class="activities-lead">
-        Del kayak tranquilo al wakeboard más intenso. Elige tu actividad en el
-        embalse de la Baells y reserva por WhatsApp en un clic.
+        Del kayak tranquilo al wakeboard más intenso. Elige tu plan en el embalse
+        de la Baells y reserva por WhatsApp en un clic.
       </p>
     </header>
 
+    <!-- Familias de actividad -->
     {ACTIVITY_FAMILIES.map((family) => (
       <div class="family" aria-labelledby={`family-${family.id}`}>
+
         <div class="family-head">
           <span class="family-index" aria-hidden="true">{family.index}</span>
           <div class="family-heading">
@@ -41,7 +47,10 @@ const { whatsappUrl } = Astro.props;
           </div>
         </div>
 
-        <ul class:list={['family-grid', `family-grid--${family.activities.length}`]} role="list">
+        <ul
+          class:list={['family-grid', `family-grid--${family.activities.length}`]}
+          role="list"
+        >
           {family.activities.map((activity, i) => (
             <li>
               <ActivityTile
@@ -52,87 +61,124 @@ const { whatsappUrl } = Astro.props;
             </li>
           ))}
         </ul>
+
       </div>
     ))}
+
+  </div>
+
+  <!-- Divider decorativo inferior -->
+  <div class="wave-divider" aria-hidden="true">
+    <img
+      src="/assets/redesign/decor/wave-divider.svg"
+      alt=""
+      width="1440"
+      height="48"
+    />
   </div>
 </section>
 
 <style>
+  /* ── Shell ─────────────────────────────────────────────────── */
   .activities {
+    position: relative;
     padding-block: 5rem;
-    background: #060b12;
-    background-image: radial-gradient(
-      120% 80% at 50% -10%,
-      rgba(2, 132, 199, 0.14) 0%,
-      rgba(6, 11, 18, 0) 60%
-    );
-    color: #e2e8f0;
+    background: #ffffff;
     overflow: hidden;
   }
 
   @media (min-width: 768px) {
     .activities {
-      padding-block: 7rem;
+      padding-block: 7rem 6rem;
     }
   }
 
-  .activities-head {
-    max-width: 640px;
-    margin-bottom: 3.5rem;
+  /* ── Decoración ──────────────────────────────────────────── */
+  .decor {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0.28;
+    user-select: none;
   }
 
-  .activities-label {
-    font-size: 0.8125rem;
-    font-weight: 600;
+  .decor--top-right {
+    top: -1rem;
+    right: -2rem;
+    width: 160px;
+    transform: rotate(15deg);
+  }
+
+  @media (min-width: 1024px) {
+    .decor--top-right {
+      width: 220px;
+      right: 2rem;
+    }
+  }
+
+  /* ── Cabecera ──────────────────────────────────────────────── */
+  .activities-head {
+    max-width: 640px;
+    margin-bottom: 4rem;
+  }
+
+  .activities-overline {
+    font-size: 0.8rem;
+    font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: #38bdf8;
-    margin-bottom: 0.9rem;
+    color: #92400e;
+    margin-bottom: 0.875rem;
   }
 
   .activities-title {
     font-family: var(--font-heading);
-    font-size: clamp(2rem, 6vw, 3.75rem);
+    font-size: clamp(2rem, 5.5vw, 3.5rem);
     font-weight: 700;
-    line-height: 1.02;
+    line-height: 1.05;
     letter-spacing: -0.03em;
-    color: #ffffff;
-    margin: 0 0 1.1rem;
+    color: #1c1917;
+    margin: 0 0 1rem;
   }
 
   .activities-lead {
     font-size: 1.075rem;
     line-height: 1.65;
-    color: rgba(226, 232, 240, 0.72);
+    color: #78716c;
     margin: 0;
   }
 
+  /* ── Familia ───────────────────────────────────────────────── */
   .family {
     margin-top: 4rem;
+    padding-top: 3.5rem;
+    border-top: 1px solid #e7e5e4;
   }
 
   .family:first-of-type {
+    border-top: none;
+    padding-top: 0;
     margin-top: 0;
   }
 
   .family-head {
     display: flex;
     align-items: flex-start;
-    gap: 1.25rem;
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
   }
 
+  /* Número grande outlined en amber */
   .family-index {
     font-family: var(--font-heading);
-    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    font-size: clamp(3rem, 8vw, 5.5rem);
     font-weight: 700;
-    line-height: 0.85;
-    letter-spacing: -0.04em;
+    line-height: 0.9;
+    letter-spacing: -0.05em;
     color: transparent;
-    -webkit-text-stroke: 1.5px rgba(56, 189, 248, 0.5);
+    -webkit-text-stroke: 1.5px #f59e0b;
     flex-shrink: 0;
+    margin-top: 0.25rem;
+    opacity: 0.7;
   }
 
   .family-heading {
@@ -141,35 +187,36 @@ const { whatsappUrl } = Astro.props;
 
   .family-label {
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #fbbf24;
-    margin-bottom: 0.35rem;
+    color: #92400e;
+    margin-bottom: 0.4rem;
   }
 
   .family-title {
     font-family: var(--font-heading);
-    font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+    font-size: clamp(1.375rem, 3vw, 2rem);
     font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    color: #ffffff;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    color: #1c1917;
     margin: 0 0 0.6rem;
   }
 
   .family-desc {
     font-size: 1rem;
-    line-height: 1.6;
-    color: rgba(226, 232, 240, 0.68);
+    line-height: 1.65;
+    color: #78716c;
     margin: 0;
-    max-width: 640px;
+    max-width: 600px;
   }
 
+  /* ── Grid de cards ─────────────────────────────────────────── */
   .family-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1.375rem;
     list-style: none;
     padding: 0;
     margin: 0;
@@ -179,23 +226,22 @@ const { whatsappUrl } = Astro.props;
     display: flex;
   }
 
-  @media (min-width: 640px) {
+  @media (min-width: 600px) {
     .family-grid {
       grid-template-columns: repeat(2, 1fr);
     }
   }
 
   @media (min-width: 1024px) {
-    /* Familia de 3: primera destacada (span 2) + 2 apiladas a la derecha */
+    /* 3 actividades: primera destacada (span 2) + 2 en columna derecha */
     .family-grid--3 {
       grid-template-columns: repeat(3, 1fr);
     }
-
     .family-grid--3 > li:first-child {
       grid-column: span 2;
     }
 
-    /* Familia de 4: cuadrícula limpia en desktop ancho */
+    /* 4 actividades: cuadrícula 2×2 limpia */
     .family-grid--4 {
       grid-template-columns: repeat(4, 1fr);
     }
@@ -205,5 +251,18 @@ const { whatsappUrl } = Astro.props;
     .family-grid--4 {
       grid-template-columns: repeat(2, 1fr);
     }
+  }
+
+  /* ── Wave divider ──────────────────────────────────────────── */
+  .wave-divider {
+    margin-top: 3rem;
+    line-height: 0;
+    opacity: 0.35;
+  }
+
+  .wave-divider img {
+    width: 100%;
+    height: auto;
+    display: block;
   }
 </style>

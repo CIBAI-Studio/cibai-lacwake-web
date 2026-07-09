@@ -10,32 +10,79 @@ const [heroCarousel, why, cta, siteConfig] = await Promise.all([
   getCtaContent(),
   getSiteConfig(),
 ]);
+
+/* Iconos SVG inline para las features (anti-emoji: CIBA-2304) */
+const FEATURE_ICONS = [
+  /* Entorno natural */
+  `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+    <path d="M14 24c-5.523 0-10-3.134-10-7s4.477-7 10-7 10 3.134 10 7-4.477 7-10 7z" stroke="currentColor" stroke-width="1.75"/>
+    <path d="M14 10V4m0 0L10.5 7.5M14 4l3.5 3.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`,
+  /* Para toda la familia */
+  `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+    <circle cx="10" cy="9" r="3" stroke="currentColor" stroke-width="1.75"/>
+    <circle cx="18" cy="9" r="3" stroke="currentColor" stroke-width="1.75"/>
+    <path d="M4 23c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+    <path d="M18 17c1.657 0 3 1.343 3 3v3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+    <circle cx="22" cy="14" r="2" stroke="currentColor" stroke-width="1.75"/>
+  </svg>`,
+  /* Flota en perfecto estado */
+  `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+    <path d="M4 18l3-8h14l3 8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M2 21c2 2 4.5 2 6.5 0s4.5-2 6.5 0 4.5 2 6.5 0 4.5-2 6.5 0" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+    <path d="M14 10V6m0 0l-2 2m2-2l2 2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`,
+  /* Fácil acceso */
+  `<svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+    <path d="M14 3C10.134 3 7 6.134 7 10c0 5.25 7 15 7 15s7-9.75 7-15c0-3.866-3.134-7-7-7z" stroke="currentColor" stroke-width="1.75"/>
+    <circle cx="14" cy="10" r="2.5" stroke="currentColor" stroke-width="1.75"/>
+  </svg>`,
+];
 ---
 
 <BaseLayout
   title="Lacwake"
   description="Lacwake — 11 actividades acuáticas en el embalse de la Baells: kayak, wakeboard, wakesurf, esquí náutico, paddle surf, barcas y más. Reserva ahora por WhatsApp."
 >
-  <!-- Hero fullscreen (carrusel multi-slide, CIBA-2217) -->
+  <!-- Hero fullscreen (carrusel multi-slide, CIBA-2217) — NO tocar -->
   <Hero slides={heroCarousel.slides} rotation={heroCarousel.rotation} />
 
-  <!-- Actividades -->
+  <!-- Actividades: catálogo numerado 01/02/03 -->
   <ActivitiesSection whatsappUrl={siteConfig.whatsappUrl} />
 
-  <!-- Por qué Lacwake -->
-  <section class="why-section" aria-labelledby="why-title">
+  <!-- Features: Naturaleza, agua y aventura -->
+  <section class="features-section" aria-labelledby="features-title">
+    <!-- Decoración botánica izq -->
+    <img
+      src="/assets/redesign/decor/botanical-branch.svg"
+      alt=""
+      aria-hidden="true"
+      class="features-decor features-decor--left"
+      width="200"
+      height="320"
+    />
+    <!-- Decoración botánica der -->
+    <img
+      src="/assets/redesign/decor/leaf-sprig.svg"
+      alt=""
+      aria-hidden="true"
+      class="features-decor features-decor--right"
+      width="140"
+      height="200"
+    />
+
     <div class="container-site">
-      <div class="why-grid">
-        <div class="why-text">
-          <div class="section-label">{why.label}</div>
-          <h2 id="why-title" class="why-title">
-            {why.title}
-          </h2>
-          <p class="why-body">{why.body1}</p>
-          <p class="why-body">{why.body2}</p>
+      <div class="features-layout">
+
+        <!-- Texto izquierda -->
+        <div class="features-text">
+          <div class="section-overline">{why.label}</div>
+          <h2 id="features-title" class="features-title">{why.title}</h2>
+          <p class="features-body">{why.body1}</p>
+          <p class="features-body">{why.body2}</p>
           <a
             href={siteConfig.whatsappUrl}
-            class="btn-primary"
+            class="btn-amber"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -43,29 +90,49 @@ const [heroCarousel, why, cta, siteConfig] = await Promise.all([
           </a>
         </div>
 
-        <div class="why-features" role="list">
-          {why.features.map(({ icon, title, desc }) => (
-            <div class="why-feature" role="listitem">
-              <div class="feature-icon" aria-hidden="true">{icon}</div>
-              <div class="feature-title">{title}</div>
-              <div class="feature-desc">{desc}</div>
+        <!-- Grid de features derecha -->
+        <div class="features-grid" role="list">
+          {why.features.map((feat, i) => (
+            <div class="feature-item" role="listitem">
+              <div class="feature-icon-wrap" aria-hidden="true">
+                <Fragment set:html={FEATURE_ICONS[i % FEATURE_ICONS.length]} />
+              </div>
+              <div class="feature-content">
+                <div class="feature-title">{feat.title}</div>
+                <div class="feature-desc">{feat.desc}</div>
+              </div>
             </div>
           ))}
         </div>
+
       </div>
     </div>
   </section>
 
-  <!-- CTA Final -->
-  <section class="cta-section" aria-labelledby="cta-title">
+  <!-- CTA banner turquesa full-width -->
+  <section class="cta-banner" aria-labelledby="cta-title">
+    <!-- Ilustración acuarela de fondo -->
+    <img
+      src="/assets/redesign/decor/watercolor-blob.svg"
+      alt=""
+      aria-hidden="true"
+      class="cta-blob"
+      width="480"
+      height="480"
+    />
+    <img
+      src="/assets/redesign/decor/water-waves.svg"
+      alt=""
+      aria-hidden="true"
+      class="cta-waves"
+      width="600"
+      height="200"
+    />
+
     <div class="container-site">
-      <div class="cta-box">
-        <h2 id="cta-title" class="cta-title">
-          {cta.title}
-        </h2>
-        <p class="cta-body">
-          {cta.body}
-        </p>
+      <div class="cta-inner">
+        <h2 id="cta-title" class="cta-title">{cta.title}</h2>
+        <p class="cta-body">{cta.body}</p>
         <div class="cta-actions">
           <a
             href={siteConfig.whatsappUrl}
@@ -80,7 +147,7 @@ const [heroCarousel, why, cta, siteConfig] = await Promise.all([
           </a>
         </div>
         <p class="cta-contact">
-          ¿Tienes dudas? Llámanos al{' '}
+          ¿Preguntas? Llámanos al{' '}
           <a href={siteConfig.phoneUrl} class="cta-phone">
             {siteConfig.phone}
           </a>
@@ -91,141 +158,241 @@ const [heroCarousel, why, cta, siteConfig] = await Promise.all([
 </BaseLayout>
 
 <style>
-  /* Why section */
-  .why-section {
-    padding-block: 5rem;
-    background: white;
+  /* ═══════════════════════════════════════════════════════════════
+     Features section
+  ══════════════════════════════════════════════════════════════ */
+  .features-section {
+    position: relative;
+    padding-block: 5.5rem;
+    background: #faf7f2;
     overflow: hidden;
   }
 
   @media (min-width: 768px) {
-    .why-section {
-      padding-block: 7rem;
+    .features-section {
+      padding-block: 7.5rem;
     }
   }
 
-  .why-grid {
+  /* Decoraciones botánicas */
+  .features-decor {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0.22;
+    user-select: none;
+  }
+
+  .features-decor--left {
+    left: -3rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 160px;
+  }
+
+  .features-decor--right {
+    right: -1.5rem;
+    bottom: 2rem;
+    width: 120px;
+    transform: rotate(-20deg);
+  }
+
+  @media (min-width: 1024px) {
+    .features-decor--left {
+      width: 200px;
+      left: -1rem;
+      opacity: 0.28;
+    }
+    .features-decor--right {
+      width: 160px;
+      right: 0;
+    }
+  }
+
+  /* Layout split: texto izq + grid der */
+  .features-layout {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 3rem;
+    gap: 3.5rem;
     align-items: start;
   }
 
   @media (min-width: 1024px) {
-    .why-grid {
-      grid-template-columns: 1fr 1fr;
+    .features-layout {
+      grid-template-columns: 5fr 7fr;
       gap: 5rem;
       align-items: center;
     }
   }
 
-  .section-label {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
+  /* Texto izquierda */
+  .section-overline {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: #0284c7;
-    margin-bottom: 0.75rem;
+    color: #92400e;
+    margin-bottom: 0.875rem;
   }
 
-  .why-title {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
+  .features-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.75rem, 4vw, 2.75rem);
     font-weight: 700;
     line-height: 1.15;
-    letter-spacing: -0.02em;
-    color: #0c0a09;
+    letter-spacing: -0.025em;
+    color: #1c1917;
     margin: 0 0 1.5rem;
     max-width: 480px;
   }
 
-  .why-body {
+  .features-body {
     font-size: 1.0625rem;
     line-height: 1.7;
     color: #57534e;
-    margin: 0 0 1.25rem;
+    margin: 0 0 1.1rem;
   }
 
-  .btn-primary {
+  .features-body:last-of-type {
+    margin-bottom: 1.75rem;
+  }
+
+  /* Botón CTA */
+  .btn-amber {
     display: inline-flex;
     align-items: center;
-    margin-top: 1rem;
     padding: 0.875rem 2rem;
     background: #f59e0b;
-    color: white;
+    color: #1c1917;
     font-weight: 600;
     font-size: 1rem;
     border-radius: 9999px;
     text-decoration: none;
-    transition: background 200ms ease, transform 150ms ease;
     min-height: 48px;
+    transition: background 180ms ease, transform 140ms ease;
   }
 
-  .btn-primary:hover {
+  .btn-amber:hover {
     background: #d97706;
     transform: translateY(-2px);
   }
 
-  .why-features {
+  .btn-amber:active {
+    transform: translateY(0);
+  }
+
+  /* Grid de features */
+  .features-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    list-style: none;
-    padding: 0;
-    margin: 0;
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
   }
 
-  .why-feature {
-    padding: 1.5rem;
-    background: #f0f9ff;
-    border-radius: 1rem;
-    border: 1px solid #bae6fd;
+  @media (min-width: 480px) {
+    .features-grid {
+      grid-template-columns: 1fr 1fr;
+    }
   }
 
-  .feature-icon {
-    font-size: 1.75rem;
-    line-height: 1;
-    margin-bottom: 0.75rem;
+  .feature-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .feature-icon-wrap {
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 2.75rem;
+    background: #ffffff;
+    border: 1px solid #e7e5e4;
+    border-radius: 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d97706;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .feature-content {
+    flex: 1;
+    min-width: 0;
   }
 
   .feature-title {
     font-family: var(--font-heading);
     font-weight: 600;
-    font-size: 1rem;
-    color: #0c4a6e;
-    margin-bottom: 0.4rem;
+    font-size: 0.9375rem;
+    color: #1c1917;
+    margin-bottom: 0.3rem;
+    line-height: 1.3;
   }
 
   .feature-desc {
-    font-size: 0.9375rem;
-    line-height: 1.55;
-    color: #0369a1;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #475569;
   }
 
-  /* CTA section */
-  .cta-section {
+  /* ═══════════════════════════════════════════════════════════════
+     CTA Banner turquesa
+  ══════════════════════════════════════════════════════════════ */
+  .cta-banner {
+    position: relative;
     padding-block: 5rem;
-    background: #082f49;
+    background: #0f766e; /* teal-700: blanco sobre él da 5.0:1 (WCAG AA) */
+    overflow: hidden;
   }
 
-  .cta-box {
+  @media (min-width: 768px) {
+    .cta-banner {
+      padding-block: 6.5rem;
+    }
+  }
+
+  /* Decoraciones de fondo */
+  .cta-blob {
+    position: absolute;
+    right: -5%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 420px;
+    opacity: 0.12;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .cta-waves {
+    position: absolute;
+    left: -2%;
+    bottom: -1rem;
+    width: 50%;
+    opacity: 0.1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .cta-inner {
+    position: relative;
     text-align: center;
-    max-width: 640px;
+    max-width: 680px;
     margin-inline: auto;
   }
 
   .cta-title {
-    font-size: clamp(1.75rem, 4vw, 2.75rem);
+    font-family: var(--font-heading);
+    font-size: clamp(1.875rem, 4.5vw, 3rem);
     font-weight: 700;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    color: white;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    color: #ffffff;
     margin: 0 0 1rem;
   }
 
   .cta-body {
     font-size: 1.125rem;
-    color: rgba(255,255,255,0.7);
-    margin: 0 0 2rem;
+    color: rgba(255, 255, 255, 0.92);
+    margin: 0 0 2.25rem;
+    line-height: 1.65;
   }
 
   .cta-actions {
@@ -236,18 +403,19 @@ const [heroCarousel, why, cta, siteConfig] = await Promise.all([
     margin-bottom: 1.5rem;
   }
 
+  /* Botón primario: amber sobre teal */
   .btn-cta-primary {
     display: inline-flex;
     align-items: center;
-    padding: 0.875rem 2rem;
+    padding: 0.9rem 2rem;
     background: #f59e0b;
-    color: white;
-    font-weight: 600;
+    color: #1c1917;
+    font-weight: 700;
     font-size: 1rem;
     border-radius: 9999px;
     text-decoration: none;
-    transition: background 200ms ease, transform 150ms ease;
     min-height: 48px;
+    transition: background 180ms ease, transform 140ms ease;
   }
 
   .btn-cta-primary:hover {
@@ -255,39 +423,46 @@ const [heroCarousel, why, cta, siteConfig] = await Promise.all([
     transform: translateY(-2px);
   }
 
+  .btn-cta-primary:active {
+    transform: translateY(0);
+  }
+
+  /* Botón secundario: contorno blanco */
   .btn-cta-secondary {
     display: inline-flex;
     align-items: center;
-    padding: 0.875rem 1.75rem;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
+    padding: 0.9rem 1.75rem;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
     color: white;
     font-weight: 600;
     font-size: 1rem;
     border-radius: 9999px;
     text-decoration: none;
-    transition: background 200ms ease;
     min-height: 48px;
+    transition: background 180ms ease;
   }
 
   .btn-cta-secondary:hover {
-    background: rgba(255,255,255,0.18);
+    background: rgba(255, 255, 255, 0.2);
   }
 
   .cta-contact {
     font-size: 0.9375rem;
-    color: rgba(255,255,255,0.55);
+    color: rgba(255, 255, 255, 0.88); /* ≥4.5:1 sobre teal-700 */
     margin: 0;
   }
 
   .cta-phone {
-    color: #38bdf8;
+    color: #ffffff;
     font-weight: 600;
-    text-decoration: none;
-    transition: color 150ms ease;
+    text-decoration: underline;
+    text-decoration-color: rgba(255, 255, 255, 0.45);
+    text-underline-offset: 2px;
+    transition: text-decoration-color 150ms ease;
   }
 
   .cta-phone:hover {
-    color: white;
+    text-decoration-color: rgba(255, 255, 255, 0.9);
   }
 </style>
