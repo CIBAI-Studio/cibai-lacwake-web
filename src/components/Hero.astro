@@ -74,18 +74,15 @@ const firstTitleFont = resolveHeroFont(slides[0]?.typography.title.font ?? 'anto
   }
 
   .hero-video,
-  .hero-slide-img,
-  .hero-fallback {
+  .hero-slide-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center;
   }
 
-  .hero-fallback {
-    position: absolute;
-    inset: 0;
-  }
+  /* La imagen fallback del vídeo la pinta el atributo `poster` del <video>
+     (ver HeroCarousel), no un <img> superpuesto — evita tapar el vídeo. */
 
   .hero-overlay {
     position: absolute;

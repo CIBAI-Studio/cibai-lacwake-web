@@ -408,33 +408,25 @@ export default function HeroCarousel({ slides, rotation }: Props) {
               style={{ transitionDuration: `${reduced ? 0 : rotation.transitionMs}ms` }}
             >
               {slide.background.type === 'video' ? (
-                <>
-                  <video
-                    ref={(el) => {
-                      videoRefs.current[i] = el;
-                    }}
-                    className="hero-video"
-                    muted
-                    loop={slide.video.loop}
-                    playsInline
-                    poster={slide.background.fallbackImage || undefined}
-                    preload={i === 0 ? slide.video.preload : 'none'}
-                    autoPlay={i === 0}
-                  >
-                    <source src={slide.background.videoUrl} type="video/mp4" />
-                  </video>
-                  {slide.background.fallbackImage && (
-                    <img
-                      className="hero-fallback"
-                      src={slide.background.fallbackImage}
-                      alt=""
-                      aria-hidden="true"
-                      width={1920}
-                      height={1080}
-                      loading={i === 0 ? 'eager' : 'lazy'}
-                    />
-                  )}
-                </>
+                // El `poster` ES la imagen fallback: el navegador la muestra hasta
+                // que el vídeo pinta su primer frame, y la conserva si el vídeo
+                // falla al cargar. NO añadir un <img> superpuesto encima del
+                // <video> — tapaba el vídeo (audio audible, imagen fija) — bug P-alta
+                // CIBA-2325.
+                <video
+                  ref={(el) => {
+                    videoRefs.current[i] = el;
+                  }}
+                  className="hero-video"
+                  muted
+                  loop={slide.video.loop}
+                  playsInline
+                  poster={slide.background.fallbackImage || undefined}
+                  preload={i === 0 ? slide.video.preload : 'none'}
+                  autoPlay={i === 0}
+                >
+                  <source src={slide.background.videoUrl} type="video/mp4" />
+                </video>
               ) : (
                 <img
                   className="hero-slide-img"
