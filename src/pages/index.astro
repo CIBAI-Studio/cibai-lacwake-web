@@ -339,7 +339,7 @@ const FEATURE_ICONS = [
   .cta-banner {
     position: relative;
     padding-block: 5rem;
-    background: #0d9488;
+    background: #0f766e; /* teal-700: blanco sobre él da 5.0:1 (WCAG AA) */
     overflow: hidden;
   }
 
@@ -390,7 +390,7 @@ const FEATURE_ICONS = [
 
   .cta-body {
     font-size: 1.125rem;
-    color: rgba(255, 255, 255, 0.78);
+    color: rgba(255, 255, 255, 0.92);
     margin: 0 0 2.25rem;
     line-height: 1.65;
   }
@@ -449,18 +449,20 @@ const FEATURE_ICONS = [
 
   .cta-contact {
     font-size: 0.9375rem;
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(255, 255, 255, 0.88); /* ≥4.5:1 sobre teal-700 */
     margin: 0;
   }
 
   .cta-phone {
-    color: #fde68a;
+    color: #ffffff;
     font-weight: 600;
-    text-decoration: none;
-    transition: color 150ms ease;
+    text-decoration: underline;
+    text-decoration-color: rgba(255, 255, 255, 0.45);
+    text-underline-offset: 2px;
+    transition: text-decoration-color 150ms ease;
   }
 
   .cta-phone:hover {
-    color: white;
+    text-decoration-color: rgba(255, 255, 255, 0.9);
   }
 </style>
