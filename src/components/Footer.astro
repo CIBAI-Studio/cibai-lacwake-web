@@ -5,15 +5,17 @@ const siteConfig = await getSiteConfig();
 ---
 
 <footer class="site-footer" role="contentinfo">
-  <!-- Ola decorativa en el borde superior -->
-  <div class="footer-wave" aria-hidden="true">
-    <img
-      src="/assets/redesign/decor/wave-divider.svg"
-      alt=""
-      width="1440"
-      height="60"
-    />
-  </div>
+  <!-- Textura de agua acuarela a todo ancho en el borde superior (punto 6) -->
+  <img
+    src="/assets/redesign/decor/agua-lateral.png"
+    alt=""
+    aria-hidden="true"
+    class="footer-water"
+    width="1440"
+    height="360"
+    loading="lazy"
+    decoding="async"
+  />
 
   <!-- Ilustración aves decorativa -->
   <img
@@ -110,29 +112,26 @@ const siteConfig = await getSiteConfig();
 <style>
   .site-footer {
     position: relative;
-    background: #082f49;
-    color: rgba(255, 255, 255, 0.65);
+    background: var(--color-cream); /* footer claro (punto 6) */
+    color: #1e293b; /* AA 13.69 sobre cream */
     padding-block: 4.5rem 2.5rem;
     margin-top: auto;
     overflow: hidden;
+    border-top: 1px solid #ece6dc;
   }
 
-  /* ── Ola superior ─────────────────────────────────────────── */
-  .footer-wave {
+  /* ── Textura de agua superior (punto 6) ───────────────────── */
+  .footer-water {
     position: absolute;
-    top: 0;
+    top: -3rem;
     left: 0;
     right: 0;
-    line-height: 0;
-    opacity: 0.25;
-    transform: rotate(180deg);
-    pointer-events: none;
-  }
-
-  .footer-wave img {
     width: 100%;
     height: auto;
-    display: block;
+    opacity: 0.45;
+    pointer-events: none;
+    user-select: none;
+    mix-blend-mode: multiply;
   }
 
   /* ── Aves decorativas ─────────────────────────────────────── */
@@ -141,7 +140,7 @@ const siteConfig = await getSiteConfig();
     top: 2.5rem;
     right: 3rem;
     width: 160px;
-    opacity: 0.18;
+    opacity: 0.3;
     pointer-events: none;
     user-select: none;
   }
@@ -150,6 +149,12 @@ const siteConfig = await getSiteConfig();
     .footer-birds {
       display: none;
     }
+  }
+
+  /* Contenido por encima de la textura de agua decorativa */
+  .site-footer .container-site {
+    position: relative;
+    z-index: 1;
   }
 
   /* ── Grid principal ───────────────────────────────────────── */
@@ -177,7 +182,7 @@ const siteConfig = await getSiteConfig();
     font-family: var(--font-heading);
     font-size: 1.625rem;
     font-weight: 700;
-    color: white;
+    color: #0d9488; /* logo Lacwake turquesa (grande) */
     text-decoration: none;
     display: inline-block;
     margin-bottom: 1rem;
@@ -186,22 +191,22 @@ const siteConfig = await getSiteConfig();
   }
 
   .footer-logo:hover {
-    color: #f59e0b;
+    color: var(--color-teal-ink);
   }
 
   .footer-tagline {
     font-size: 0.9375rem;
     line-height: 1.65;
     margin-bottom: 1.5rem;
-    color: rgba(255, 255, 255, 0.55);
+    color: #475569; /* slate-600 sobre cream → AA 7+ */
   }
 
   .footer-cta {
     display: inline-flex;
     align-items: center;
     padding: 0.625rem 1.25rem;
-    background: #f59e0b;
-    color: #1c1917;
+    background: var(--color-sun-pastel); /* naranja pastel (punto 7) */
+    color: #1e293b;
     font-weight: 600;
     font-size: 0.875rem;
     border-radius: 9999px;
@@ -211,17 +216,17 @@ const siteConfig = await getSiteConfig();
   }
 
   .footer-cta:hover {
-    background: #d97706;
+    background: var(--color-sun-pastel-hover);
   }
 
   /* ── Columnas ─────────────────────────────────────────────── */
   .footer-col-title {
     font-family: var(--font-heading);
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.55);
+    color: var(--color-teal-ink); /* títulos teal AA 5.12 */
     margin-bottom: 1.1rem;
   }
 
@@ -235,7 +240,7 @@ const siteConfig = await getSiteConfig();
   }
 
   .footer-col a {
-    color: rgba(255, 255, 255, 0.62);
+    color: var(--color-teal-ink); /* enlaces teal AA 5.12 */
     text-decoration: none;
     font-size: 0.9375rem;
     transition: color 150ms ease;
@@ -245,12 +250,13 @@ const siteConfig = await getSiteConfig();
   }
 
   .footer-col a:hover {
-    color: white;
+    color: #0d9488;
+    text-decoration: underline;
   }
 
   .footer-detail {
     font-size: 0.9375rem;
-    color: rgba(255, 255, 255, 0.65);
+    color: #1e293b; /* texto oscuro AA 13.69 */
     display: flex;
     align-items: center;
     min-height: 44px;
@@ -259,7 +265,7 @@ const siteConfig = await getSiteConfig();
 
   /* ── Bottom bar ───────────────────────────────────────────── */
   .footer-bottom {
-    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-top: 1px solid #e4ddd0;
     padding-top: 2rem;
     display: flex;
     flex-direction: column;
@@ -267,7 +273,7 @@ const siteConfig = await getSiteConfig();
     align-items: center;
     text-align: center;
     font-size: 0.875rem;
-    color: rgba(255, 255, 255, 0.55);
+    color: #475569; /* slate-600 AA 7+ */
   }
 
   @media (min-width: 600px) {
@@ -287,12 +293,13 @@ const siteConfig = await getSiteConfig();
   }
 
   .footer-bottom-links a {
-    color: rgba(255, 255, 255, 0.55);
+    color: #475569;
     text-decoration: none;
     transition: color 150ms ease;
   }
 
   .footer-bottom-links a:hover {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--color-teal-ink);
+    text-decoration: underline;
   }
 </style>

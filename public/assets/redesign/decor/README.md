@@ -18,6 +18,22 @@ Preview visual: `../decor-contact-sheet.png`.
 | `mountain-range.svg` | Silueta serralada Baells (3 planos + sol), base footer/hero | 1440×260 | ⛔ paleta fija |
 | `watercolor-blob.svg` | Mancha acuarela orgánica (feTurbulence), fondo de sección | 400×400 | ⛔ gradiente fijo |
 
+## Assets acuarela nítidos ([CIBA-2324](/CIBA/issues/CIBA-2324)) — iteración vs referencia Board
+
+Añadidos en la iteración pastel (padre [CIBA-2323](/CIBA/issues/CIBA-2323)). Raster PNG con **alpha**,
+alta definición, sin texto. Preview: `../decor-contact-sheet-pastel.png`. Spec: `docs/design/pastel-tokens-CIBA-2323.md`.
+
+| Archivo | Punto | Uso sugerido | Recolor |
+|---|---|---|---|
+| `garza-orilla.png` | 3 | Garza blanca entre juncos, esquina **inf-izq** de «Naturaleza, agua y aventura» | ⛔ raster alpha |
+| `botanica-margen.png` | 3 | Rama olivo+bayas ámbar, margen **derecho** (espejo para izq alterno) | ⛔ raster alpha |
+| `botanica-teal.png` | 3 | Rama verde-teal, margen **izquierdo** | ⛔ raster alpha |
+| `agua-lateral.png` | 3 | Textura acuarela agua/olas translúcida, laterales + borde superior footer | ⛔ raster alpha |
+| `montanas-sol-puente.svg` | 4 | Line-art montañas+sol+puente Baells + lavado papel, fondo **sup-der** de «11 formas» | ✅ `currentColor` |
+
+Raster → `<img aria-hidden="true">` en `position:absolute`, `pointer-events:none`, opacidad 0.4–0.9,
+sin tapar texto. `montanas-sol-puente.svg` es recoloreable: inlinear + `color:#0D9488` + opacidad ~0.6.
+
 ## Recolor con `currentColor` — IMPORTANTE
 
 Los assets marcados ✅ heredan el color de texto vía `currentColor`, con **fallback teal `#0D9488`**

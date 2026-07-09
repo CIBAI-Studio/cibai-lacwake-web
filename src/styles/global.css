@@ -75,6 +75,25 @@
   --color-nature-500: #10b981;
   --color-nature-600: #059669;
 
+  /* ─── Iteración pastel (CIBA-2324 · doc docs/design/pastel-tokens-CIBA-2323.md)
+     Todos los pares (fondo,texto) verificados WCAG AA. Ver reglas duras §D. ── */
+  /* Punto 7 — naranja pastel (fondo botón/icono; texto SIEMPRE #1E293B) */
+  --color-sun-pastel:      #F6B85C;
+  --color-sun-pastel-hover:#EAA640;
+  --color-sun-ink:         #C2410C; /* naranja como texto sobre cream (AA 4.85) */
+  /* Punto 7 — teal pastel (iconos grid Naturaleza) */
+  --color-teal-pastel:     #5CC0B4; /* fill decorativo */
+  --color-teal-ink:        #0F766E; /* teal como texto (AA 5.12) */
+  /* Punto 8 — badges azul pastel */
+  --color-badge-blue:      #CFE2F0;
+  --color-badge-blue-ink:  #1E3A5F; /* AA 8.65 */
+  --color-badge-blue-line: #B4D2E8;
+  /* Punto 5 — banda CTA aguamarina (ancla AA para texto blanco 4.58) */
+  --color-cta-aqua:        #1C818F;
+  --color-cta-aqua-lite:   #3FA9B5; /* solo degradado decorativo, NO fondo de texto */
+  /* Punto 6 — footer claro */
+  --color-cream:           #FAF7F2;
+
   /* Typography */
   --font-heading: 'Space Grotesk', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;

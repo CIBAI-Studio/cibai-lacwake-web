@@ -124,16 +124,16 @@ const external = activity.href.startsWith('http');
     flex: 1;
   }
 
-  /* ── Badge ─────────────────────────────────────────────────── */
+  /* ── Badge (pill azul pastel entre foto y título, punto 8) ──── */
   .card-badge {
     align-self: flex-start;
     font-size: 0.6875rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #92400e;
-    background: #fef3c7;
-    border: 1px solid #fde68a;
+    color: var(--color-badge-blue-ink); /* #1E3A5F sobre #CFE2F0 → AA 8.65 */
+    background: var(--color-badge-blue);
+    border: 1px solid var(--color-badge-blue-line);
     padding: 0.25rem 0.65rem;
     border-radius: 9999px;
   }
@@ -156,7 +156,7 @@ const external = activity.href.startsWith('http');
   }
 
   .card-title-link:hover {
-    color: #d97706;
+    color: var(--color-teal-ink);
   }
 
   /* ── Blurb ─────────────────────────────────────────────────── */
@@ -177,8 +177,8 @@ const external = activity.href.startsWith('http');
     padding: 0.625rem 1.25rem;
     font-weight: 600;
     font-size: 0.9rem;
-    color: #1c1917;
-    background: #f59e0b;
+    color: #1e293b; /* texto oscuro sobre naranja pastel (regla dura §D) */
+    background: var(--color-sun-pastel);
     border-radius: 9999px;
     text-decoration: none;
     align-self: flex-start;
@@ -187,7 +187,7 @@ const external = activity.href.startsWith('http');
   }
 
   .card-cta:hover {
-    background: #d97706;
+    background: var(--color-sun-pastel-hover);
     gap: 0.6rem;
   }
 
