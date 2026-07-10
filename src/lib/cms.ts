@@ -117,6 +117,30 @@ export interface HeroSlideBackground {
   imageUrl: string;
 }
 
+/**
+ * Bloque de texto rotatorio dentro de un slide (contrato CIBA-2453 §1).
+ * Comparte los campos de texto del slide plano, pero con posición y duración
+ * propias. La tipografía y el vídeo siguen siendo por-slide.
+ */
+export interface HeroTextBlock {
+  id: string;
+  overline: string;
+  title: string;
+  subtitle: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  ctaSecondaryLabel: string;
+  ctaSecondaryUrl: string;
+  /** Posición POR BLOQUE (antes era por-slide). Default: layout del slide. */
+  layout: { h: HeroHAlign; v: HeroVAlign };
+  /**
+   * Segundos que el bloque permanece visible (1–60). Opcional (§3): sin
+   * duration, el último bloque hace hold hasta el fin del slide y uno
+   * intermedio usa el default de 6 s.
+   */
+  duration?: number;
+}
+
 /** Slide resuelto y saneado, listo para render. Extiende la capa de texto del Hero. */
 export interface HeroSlide {
   id: string;
@@ -146,6 +170,13 @@ export interface HeroSlide {
    * si está ausente o fuera de rango, el carrusel hereda `rotation.intervalMs`.
    */
   duration?: number;
+  /**
+   * Bloques de texto que rotan secuencialmente dentro del slide (contrato
+   * CIBA-2453 §2–3). Siempre ≥1: si el CMS no envía `blocks[]`, el parser
+   * sintetiza un bloque único desde los campos planos → render idéntico al
+   * comportamiento actual.
+   */
+  blocks: HeroTextBlock[];
 }
 
 export type HeroTransition = 'fade' | 'slide' | 'none';
@@ -562,6 +593,7 @@ export async function getHeroContent(): Promise<HeroContent> {
 // ─── Hero carrusel: defaults, parsing y fetch (CIBA-2217) ─────────────────────
 
 const HERO_MAX_SLIDES = 5;
+const HERO_MAX_BLOCKS = 5;
 const HERO_DEFAULT_IMAGE_MS = 6000;
 const HERO_DEFAULT_VIDEO_MS = 8000;
 const HERO_DEFAULT_TRANSITION_MS = 800;
@@ -623,6 +655,38 @@ function parseSlideDuration(v: unknown): number | undefined {
   return Number.isFinite(n) && n >= 1 && n <= 60 ? n : undefined;
 }
 
+/** Capa de texto plana de un slide; base del bloque sintetizado legacy. */
+type HeroFlatText = Omit<HeroTextBlock, 'id' | 'duration'>;
+
+/**
+ * Bloque de texto explícito de `blocks[]` (contrato CIBA-2453 §1). `title` es
+ * el único campo obligatorio (§5) — sin fallback: un bloque sin título se
+ * descarta, no hereda el del slide. Los CTAs sí heredan de la capa plana del
+ * slide (los botones de reserva persisten en bloques que no los redefinen);
+ * la posición hereda del layout legacy del slide.
+ */
+function parseHeroTextBlock(raw: Raw, index: number, flat: HeroFlatText): HeroTextBlock {
+  const s = (f: string) => raw[f] as string | undefined;
+  const layoutRaw = (raw.layout ?? {}) as Raw;
+  return {
+    id: vStr(raw.id, `block-${index}`),
+    title: vStr(raw.title, ''),
+    overline: vStr(raw.overline, ''),
+    subtitle: vStr(raw.subtitle, ''),
+    ctaLabel: s('cta_primary_text') ?? s('cta_text') ?? s('ctaLabel') ?? flat.ctaLabel,
+    ctaUrl: s('cta_primary_href') ?? s('cta_href') ?? s('ctaUrl') ?? flat.ctaUrl,
+    ctaSecondaryLabel: s('cta_secondary_text') ?? s('ctaSecondaryLabel') ?? flat.ctaSecondaryLabel,
+    ctaSecondaryUrl: s('cta_secondary_href') ?? s('ctaSecondaryUrl') ?? flat.ctaSecondaryUrl,
+    layout: {
+      h: vEnum(layoutRaw.h, ['left', 'center', 'right'] as const, flat.layout.h),
+      v: vEnum(layoutRaw.v, ['top', 'center', 'bottom'] as const, flat.layout.v),
+    },
+    // Misma semántica que parseSlideDuration: fuera de rango/no numérico →
+    // undefined (delega en los defaults de rotación de §3, no clampa).
+    duration: parseSlideDuration(raw.duration),
+  };
+}
+
 /** Convierte un HeroSlide crudo del contrato backend en un slide resuelto. */
 function parseHeroSlide(raw: Raw, index: number): HeroSlide {
   const s = (f: string) => raw[f] as string | undefined;
@@ -632,6 +696,26 @@ function parseHeroSlide(raw: Raw, index: number): HeroSlide {
   // Tipo: respeta el contrato; si es inválido, se infiere por el campo presente.
   const inferred: HeroBackgroundType = videoUrl ? 'video' : 'image';
   const type = vEnum(bg.type, ['image', 'video'] as const, inferred);
+
+  const flat: HeroFlatText = {
+    overline: s('overline') ?? FALLBACK_HERO.overline,
+    title: s('title') ?? FALLBACK_HERO.title,
+    subtitle: s('subtitle') ?? FALLBACK_HERO.subtitle,
+    ctaLabel: s('cta_primary_text') ?? s('cta_text') ?? s('ctaLabel') ?? FALLBACK_HERO.ctaLabel,
+    ctaUrl: s('cta_primary_href') ?? s('cta_href') ?? s('ctaUrl') ?? FALLBACK_HERO.ctaUrl,
+    ctaSecondaryLabel: s('cta_secondary_text') ?? s('ctaSecondaryLabel') ?? FALLBACK_HERO.ctaSecondaryLabel,
+    ctaSecondaryUrl: s('cta_secondary_href') ?? s('ctaSecondaryUrl') ?? FALLBACK_HERO.ctaSecondaryUrl,
+    layout: parseHeroLayout((raw.layout ?? {}) as Raw),
+  };
+
+  // blocks[] explícito: descarta bloques sin título (§5) y limita a 5. Si el
+  // slide no trae blocks[] (o queda vacío), se sintetiza un bloque único desde
+  // la capa plana con duration:undefined → render idéntico al actual (§2).
+  const rawBlocks = Array.isArray(raw.blocks) ? (raw.blocks as Raw[]) : [];
+  const blocks = rawBlocks
+    .map((b, i) => parseHeroTextBlock((b ?? {}) as Raw, i, flat))
+    .filter((b) => b.title.trim() !== '')
+    .slice(0, HERO_MAX_BLOCKS);
 
   return {
     id: vStr(raw.id, `slide-${index}`),
@@ -643,17 +727,11 @@ function parseHeroSlide(raw: Raw, index: number): HeroSlide {
       fallbackImage: vStr(bg.fallback_image ?? bg.fallbackImage, ''),
       imageUrl,
     },
-    overline: s('overline') ?? FALLBACK_HERO.overline,
-    title: s('title') ?? FALLBACK_HERO.title,
-    subtitle: s('subtitle') ?? FALLBACK_HERO.subtitle,
-    ctaLabel: s('cta_primary_text') ?? s('cta_text') ?? s('ctaLabel') ?? FALLBACK_HERO.ctaLabel,
-    ctaUrl: s('cta_primary_href') ?? s('cta_href') ?? s('ctaUrl') ?? FALLBACK_HERO.ctaUrl,
-    ctaSecondaryLabel: s('cta_secondary_text') ?? s('ctaSecondaryLabel') ?? FALLBACK_HERO.ctaSecondaryLabel,
-    ctaSecondaryUrl: s('cta_secondary_href') ?? s('ctaSecondaryUrl') ?? FALLBACK_HERO.ctaSecondaryUrl,
-    layout: parseHeroLayout((raw.layout ?? {}) as Raw),
+    ...flat,
     typography: parseHeroTypography((raw.typography ?? {}) as Raw),
     video: parseHeroVideo((raw.video ?? {}) as Raw),
     duration: parseSlideDuration(raw.duration),
+    blocks: blocks.length > 0 ? blocks : [{ id: 'block-0', ...flat }],
   };
 }
 
@@ -685,6 +763,16 @@ function parseHeroRotation(raw: Raw): HeroRotation {
 /** Deriva un slide único a partir del contenido legacy del Hero (retrocompat / fallback). */
 function legacySlideFromHero(h: HeroContent): HeroSlide {
   const type: HeroBackgroundType = h.videoUrl ? 'video' : 'image';
+  const flat: HeroFlatText = {
+    overline: h.overline,
+    title: h.title,
+    subtitle: h.subtitle,
+    ctaLabel: h.ctaLabel,
+    ctaUrl: h.ctaUrl,
+    ctaSecondaryLabel: h.ctaSecondaryLabel,
+    ctaSecondaryUrl: h.ctaSecondaryUrl,
+    layout: h.layout,
+  };
   return {
     id: 'legacy-hero',
     active: true,
@@ -695,16 +783,10 @@ function legacySlideFromHero(h: HeroContent): HeroSlide {
       fallbackImage: h.fallbackImage,
       imageUrl: type === 'image' ? h.fallbackImage : '',
     },
-    overline: h.overline,
-    title: h.title,
-    subtitle: h.subtitle,
-    ctaLabel: h.ctaLabel,
-    ctaUrl: h.ctaUrl,
-    ctaSecondaryLabel: h.ctaSecondaryLabel,
-    ctaSecondaryUrl: h.ctaSecondaryUrl,
-    layout: h.layout,
+    ...flat,
     typography: h.typography,
     video: h.video,
+    blocks: [{ id: 'block-0', ...flat }],
   };
 }
 
