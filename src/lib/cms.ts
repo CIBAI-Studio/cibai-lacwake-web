@@ -247,11 +247,22 @@ export interface MenuItem {
 }
 
 /** Marca del footer editable desde el CMS (key `footer`, CIBA-2388 / punto 5 CIBA-2376). */
+export interface FooterLink {
+  label: string;
+  href: string;
+}
+
 export interface FooterContent {
   /** URL de imagen de logo. Vacío ⇒ se renderiza `logoText`. */
   logoImage: string;
   logoText: string;
   logoHref: string;
+  /** Texto breve bajo el logo. Los `\n` del textarea admin se respetan (pre-line). */
+  tagline: string;
+  /** Línea de copyright. El placeholder `{year}` se sustituye por el año actual. */
+  copyright: string;
+  navActividades: FooterLink[];
+  navLegal: FooterLink[];
 }
 
 export interface SiteConfig {
@@ -396,12 +407,38 @@ const FALLBACK_FOOTER: FooterContent = {
   logoImage: '',
   logoText: 'Lacwake',
   logoHref: '/',
+  tagline:
+    'Actividades acuáticas en el embalse de la Baells.\nKayak, wakeboard, paddle surf y más para toda la familia.',
+  copyright: '© {year} Lacwake · Berguedà Nàutic SL',
+  navActividades: [
+    { label: 'Kayak', href: '/actividades/kayak' },
+    { label: 'Hidropedales', href: '/actividades/hidropedales' },
+    { label: 'Barcas', href: '/actividades/barcas' },
+    { label: 'Wakeboard & Esquí', href: '/actividades/wakeboard' },
+    { label: 'Paddle Surf', href: '/actividades/sup' },
+  ],
+  navLegal: [
+    { label: 'Aviso legal', href: '/aviso-legal' },
+    { label: 'Política de privacidad', href: '/politica-privacidad' },
+    { label: 'Política de cookies', href: '/politica-cookies' },
+    { label: 'Condiciones', href: '/condiciones-contratacion' },
+  ],
 };
 
+/** Lista de {label, href} bien formados; lista vacía o malformada ⇒ fallback. */
+function vLinks(v: unknown, fb: FooterLink[]): FooterLink[] {
+  if (!Array.isArray(v)) return fb;
+  const links = v
+    .filter((l): l is Record<string, unknown> => typeof l === 'object' && l !== null)
+    .map((l) => ({ label: vStr(l.label, ''), href: vStr(l.href, '') }))
+    .filter((l) => l.label !== '' && l.href !== '');
+  return links.length > 0 ? links : fb;
+}
+
 /**
- * Marca del footer desde la key `footer` del CMS. `logo_image` lo añade el
- * ticket de admin hermano (punto 5 CIBA-2376); mientras no exista, cae a
- * `logo_text` y el footer se ve idéntico al actual.
+ * Contenido del footer desde la key `footer` del CMS (editor completo en admin,
+ * lacwake-cms-api PR #22). Cada campo cae al valor hardcodeado histórico si el
+ * CMS aún no lo tiene o llega vacío/malformado (CIBA-2406).
  */
 export async function getFooterContent(): Promise<FooterContent> {
   const c = await fetchSection('/api/content/footer');
@@ -411,6 +448,11 @@ export async function getFooterContent(): Promise<FooterContent> {
     logoImage: vStr(s('logo_image') ?? s('logoImage'), ''),
     logoText: s('logo_text') ?? s('logoText') ?? FALLBACK_FOOTER.logoText,
     logoHref: s('logo_href') ?? s('logoHref') ?? FALLBACK_FOOTER.logoHref,
+    tagline: vStr(s('tagline'), FALLBACK_FOOTER.tagline),
+    copyright: vStr(s('copyright'), FALLBACK_FOOTER.copyright),
+    navActividades: vLinks(c.nav_actividades, FALLBACK_FOOTER.navActividades),
+    // El admin migró la clave legacy `legal_links` → `nav_legal`; se acepta ambas.
+    navLegal: vLinks(c.nav_legal ?? c.legal_links, FALLBACK_FOOTER.navLegal),
   };
 }
 
