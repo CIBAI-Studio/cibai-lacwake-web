@@ -3,6 +3,9 @@ import { getFooterContent, getSiteConfig } from '../lib/cms';
 
 const siteConfig = await getSiteConfig();
 const footer = await getFooterContent();
+
+// `{year}` del CMS → año actual (CIBA-2402).
+const copyrightText = footer.copyright.replaceAll('{year}', String(new Date().getFullYear()));
 ---
 
 <footer class="site-footer" role="contentinfo">
@@ -47,10 +50,7 @@ const footer = await getFooterContent();
             footer.logoText
           )}
         </a>
-        <p class="footer-tagline">
-          Actividades acuáticas en el embalse de la Baells.<br />
-          Kayak, wakeboard, paddle surf y más para toda la familia.
-        </p>
+        <p class="footer-tagline">{footer.tagline}</p>
         <a
           href={siteConfig.whatsappUrl}
           class="footer-cta"
@@ -65,11 +65,9 @@ const footer = await getFooterContent();
       <nav class="footer-col" aria-label="Actividades">
         <h3 class="footer-col-title">Actividades</h3>
         <ul role="list">
-          <li><a href="/actividades/kayak">Kayak</a></li>
-          <li><a href="/actividades/hidropedales">Hidropedales</a></li>
-          <li><a href="/actividades/barcas">Barcas</a></li>
-          <li><a href="/actividades/wakeboard">Wakeboard &amp; Esquí</a></li>
-          <li><a href="/actividades/sup">Paddle Surf</a></li>
+          {footer.navActividades.map((item) => (
+            <li><a href={item.href}>{item.label}</a></li>
+          ))}
         </ul>
       </nav>
 
@@ -98,10 +96,9 @@ const footer = await getFooterContent();
       <nav class="footer-col" aria-label="Legal">
         <h3 class="footer-col-title">Legal</h3>
         <ul role="list">
-          <li><a href="/aviso-legal">Aviso legal</a></li>
-          <li><a href="/politica-privacidad">Política de privacidad</a></li>
-          <li><a href="/politica-cookies">Política de cookies</a></li>
-          <li><a href="/condiciones-contratacion">Condiciones</a></li>
+          {footer.navLegal.map((item) => (
+            <li><a href={item.href}>{item.label}</a></li>
+          ))}
         </ul>
       </nav>
 
@@ -109,7 +106,7 @@ const footer = await getFooterContent();
 
     <!-- Bottom bar -->
     <div class="footer-bottom">
-      <p>&copy; {new Date().getFullYear()} Lacwake · Berguedà Nàutic SL</p>
+      <p>{copyrightText}</p>
       <p class="footer-bottom-links">
         <a href="/politica-privacidad">Privacidad</a>
         <span aria-hidden="true">·</span>
@@ -217,6 +214,7 @@ const footer = await getFooterContent();
     line-height: 1.65;
     margin-bottom: 1.5rem;
     color: #475569; /* slate-600 sobre cream → AA 7+ */
+    white-space: pre-line; /* preserva los `\n` del tagline CMS */
   }
 
   .footer-cta {
