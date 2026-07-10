@@ -729,16 +729,26 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
   if (!c) return fb;
   const s = (f: string) => c[f] as string | undefined;
   return {
-    // Admin uses `page_title`; DB seed used `title` — accept both
-    title: s('page_title') ?? s('title') ?? fb?.title ?? '',
-    description: s('description') ?? fb?.description ?? '',
+    // Admin (CIBA-2348) guarda `title`; seed histórico usó `page_title`.
+    title: s('title') ?? s('page_title') ?? fb?.title ?? '',
+    // Lead/intro visible: el admin lo guarda como `meta_description`
+    // (campo "Descripción corta (SEO / intro)"); aceptamos `description` legacy.
+    description: s('meta_description') ?? s('description') ?? fb?.description ?? '',
     tag: s('tag') ?? fb?.tag,
     duration: s('duration') ?? fb?.duration,
-    minAge: s('min_age') ?? s('minAge') ?? fb?.minAge,
+    minAge: s('minAge') ?? s('min_age') ?? fb?.minAge,
     price: s('price') ?? fb?.price,
-    // Admin uses `features` (string[]); fallback type uses `included`
-    included: (c.features as string[] | undefined) ?? (c.included as string[] | undefined) ?? fb?.included,
-    body: s('body') ?? fb?.body ?? '',
+    // Admin usa `included` (string[]); aceptamos `features` legacy.
+    included: (c.included as string[] | undefined) ?? (c.features as string[] | undefined) ?? fb?.included,
+    // CIBA-2378 (b): el cuerpo enriquecido se guarda como `html_content`
+    // (admin WYSIWYG + seed). Antes leíamos `body` (campo inexistente) → el
+    // contenido del CMS nunca se renderizaba y las ediciones/saltos de línea
+    // del Board no aparecían. Aceptamos `body` legacy como respaldo.
+    body: s('html_content') ?? s('body') ?? fb?.body ?? '',
+    // CIBA-2378 (a): imagen editable desde admin (MediaPicker). Antes iba
+    // hardcodeada en cada página → las ediciones del admin no se reflejaban.
+    image: s('image') ?? fb?.image,
+    imageAlt: s('imageAlt') ?? s('image_alt') ?? fb?.imageAlt,
   };
 }
 

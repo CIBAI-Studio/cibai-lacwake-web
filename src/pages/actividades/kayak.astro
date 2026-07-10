@@ -10,32 +10,18 @@ const duration = cms?.duration ?? '1 – 3 horas';
 const minAge = cms?.minAge ?? '6';
 const price = cms?.price ?? 'Desde 12 €/h';
 const included = cms?.included ?? ['Kayak (individual o doble)', 'Chaleco salvavidas', 'Remo y accesorios', 'Briefing de seguridad', 'Asistencia en agua'];
-const cmsBody = cms?.body ?? '';
----
+const image = cms?.image ?? '/assets/images/kayak.jpg';
+const imageAlt = cms?.imageAlt ?? 'Persona practicando kayak en aguas tranquilas del pantano al amanecer';
 
-<ActivityLayout
-  title={title}
-  description={description}
-  image="/assets/images/kayak.jpg"
-  imageAlt="Persona practicando kayak en aguas tranquilas del pantano al amanecer"
-  tag={tag}
-  duration={duration}
-  minAge={minAge}
-  price={price}
-  included={included}
->
-
+// CIBA-2378: el cuerpo se renderiza SIEMPRE vía `set:html`. Si el CMS trae
+// `html_content` lo usamos (negritas y saltos de línea preservados); si no, cae a
+// este contenido por defecto. Antes se duplicaba (hardcode + append del CMS).
+const DEFAULT_BODY = `
   <h2>¿Qué es el kayak en Lacwake?</h2>
-  <p>
-    El kayak es la actividad estrella de Lacwake. Nuestro pantano ofrece las condiciones
-    perfectas para remeros de todos los niveles: aguas tranquilas, sin oleaje y rodeadas
-    de una naturaleza espectacular. No necesitas experiencia previa para disfrutarlo.
-  </p>
+  <p>El kayak es la actividad estrella de Lacwake. Nuestro pantano ofrece las condiciones perfectas para remeros de todos los niveles: aguas tranquilas, sin oleaje y rodeadas de una naturaleza espectacular. No necesitas experiencia previa para disfrutarlo.</p>
 
   <h2>¿Para quién es?</h2>
-  <p>
-    El kayak en Lacwake es ideal para:
-  </p>
+  <p>El kayak en Lacwake es ideal para:</p>
   <ul>
     <li><strong>Familias</strong> con niños a partir de 6 años.</li>
     <li><strong>Parejas</strong> que buscan una aventura romántica en plena naturaleza.</li>
@@ -45,28 +31,13 @@ const cmsBody = cms?.body ?? '';
   </ul>
 
   <h2>¿Qué verás en tu ruta?</h2>
-  <p>
-    El pantano es un ecosistema único. Durante tu travesía en kayak podrás observar:
-    aves acuáticas, vegetación de ribera, calas tranquilas y vistas panorámicas de las
-    montañas circundantes. En función de la época del año, la fauna y la paleta de
-    colores del pantano varían de forma espectacular.
-  </p>
+  <p>El pantano es un ecosistema único. Durante tu travesía en kayak podrás observar: aves acuáticas, vegetación de ribera, calas tranquilas y vistas panorámicas de las montañas circundantes. En función de la época del año, la fauna y la paleta de colores del pantano varían de forma espectacular.</p>
 
   <h2>¿Necesito experiencia?</h2>
-  <p>
-    No. Nuestro equipo te ofrecerá un briefing completo de seguridad y técnica básica
-    antes de salir al agua. En pocos minutos estarás remando con confianza. Si en algún
-    momento tienes alguna dificultad, el equipo de Lacwake estará siempre cerca para
-    ayudarte.
-  </p>
+  <p>No. Nuestro equipo te ofrecerá un briefing completo de seguridad y técnica básica antes de salir al agua. En pocos minutos estarás remando con confianza. Si en algún momento tienes alguna dificultad, el equipo de Lacwake estará siempre cerca para ayudarte.</p>
 
   <h2>Condiciones y reserva</h2>
-  <p>
-    El kayak está disponible todos los días durante la temporada (de mayo a octubre),
-    de 9:00 a 20:00 h. Las salidas son por libre, aunque también ofrecemos rutas guiadas
-    para grupos. Recomendamos reservar con antelación, especialmente en fines de semana
-    y festivos.
-  </p>
+  <p>El kayak está disponible todos los días durante la temporada (de mayo a octubre), de 9:00 a 20:00 h. Las salidas son por libre, aunque también ofrecemos rutas guiadas para grupos. Recomendamos reservar con antelación, especialmente en fines de semana y festivos.</p>
 
   <h2>¿Qué debo traer?</h2>
   <ul>
@@ -75,7 +46,22 @@ const cmsBody = cms?.body ?? '';
     <li>Agua y snacks si planeas una salida larga.</li>
     <li>Ganas de disfrutar.</li>
   </ul>
+`;
+const bodyHtml = cms?.body?.trim() ? cms.body : DEFAULT_BODY;
+---
 
-  {cmsBody && <Fragment set:html={cmsBody} />}
+<ActivityLayout
+  title={title}
+  description={description}
+  image={image}
+  imageAlt={imageAlt}
+  tag={tag}
+  duration={duration}
+  minAge={minAge}
+  price={price}
+  included={included}
+>
+
+  <Fragment set:html={bodyHtml} />
 
 </ActivityLayout>

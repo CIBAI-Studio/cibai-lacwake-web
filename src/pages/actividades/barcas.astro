@@ -10,41 +10,19 @@ const duration = cms?.duration ?? '1 – 3 horas';
 const minAge = cms?.minAge ?? '4';
 const price = cms?.price ?? 'Desde 8 €/h';
 const included = cms?.included ?? ['Barca a remos (2-4 plazas)', 'Remos y accesorios', 'Chalecos salvavidas', 'Instrucciones básicas de remo'];
-const cmsBody = cms?.body ?? '';
----
+const image = cms?.image ?? '/assets/images/barcas.jpg';
+const imageAlt = cms?.imageAlt ?? 'Pareja remando en una barca de madera por el pantano al atardecer';
 
-<ActivityLayout
-  title={title}
-  description={description}
-  image="/assets/images/barcas.jpg"
-  imageAlt="Pareja remando en una barca de madera por el pantano al atardecer"
-  tag={tag}
-  duration={duration}
-  minAge={minAge}
-  price={price}
-  included={included}
->
-
+// CIBA-2378: cuerpo vía `set:html`. CMS `html_content` si existe; si no, default.
+const DEFAULT_BODY = `
   <h2>La experiencia más auténtica del pantano</h2>
-  <p>
-    Si buscas desconectar de verdad y sumergirte en la calma absoluta, las barcas a remos
-    de Lacwake son tu elección. A diferencia de otras embarcaciones motorizadas, las barcas
-    a remos te permiten navegar en silencio, acercándote a la fauna y los paisajes más
-    íntimos del pantano sin molestar el entorno natural.
-  </p>
+  <p>Si buscas desconectar de verdad y sumergirte en la calma absoluta, las barcas a remos de Lacwake son tu elección. A diferencia de otras embarcaciones motorizadas, las barcas a remos te permiten navegar en silencio, acercándote a la fauna y los paisajes más íntimos del pantano sin molestar el entorno natural.</p>
 
   <h2>Una tradición acuática</h2>
-  <p>
-    Las barcas a remos son una de las formas más antiguas y nobles de navegar. En Lacwake
-    hemos recuperado esta tradición con embarcaciones modernas pero que respetan la esencia
-    clásica: estables, fáciles de manejar y resistentes. No necesitas haber remado antes
-    para disfrutarlas.
-  </p>
+  <p>Las barcas a remos son una de las formas más antiguas y nobles de navegar. En Lacwake hemos recuperado esta tradición con embarcaciones modernas pero que respetan la esencia clásica: estables, fáciles de manejar y resistentes. No necesitas haber remado antes para disfrutarlas.</p>
 
   <h2>¿Dónde puedo ir?</h2>
-  <p>
-    Las barcas pueden explorar una amplia zona del pantano. Podrás descubrir:
-  </p>
+  <p>Las barcas pueden explorar una amplia zona del pantano. Podrás descubrir:</p>
   <ul>
     <li>Calas escondidas con aguas especialmente cristalinas.</li>
     <li>Zonas de observación de aves acuáticas.</li>
@@ -53,12 +31,7 @@ const cmsBody = cms?.body ?? '';
   </ul>
 
   <h2>¿Cómo se rema?</h2>
-  <p>
-    Nuestro equipo te explicará la técnica básica de remo antes de salir. Los conceptos
-    fundamentales (tracción, dirección, sincronización en pareja) se aprenden en minutos.
-    Las barcas son muy estables y el riesgo de vuelco es mínimo si se siguen las
-    indicaciones del equipo.
-  </p>
+  <p>Nuestro equipo te explicará la técnica básica de remo antes de salir. Los conceptos fundamentales (tracción, dirección, sincronización en pareja) se aprenden en minutos. Las barcas son muy estables y el riesgo de vuelco es mínimo si se siguen las indicaciones del equipo.</p>
 
   <h2>Ideal para...</h2>
   <ul>
@@ -69,12 +42,23 @@ const cmsBody = cms?.body ?? '';
   </ul>
 
   <h2>Recomendaciones</h2>
-  <p>
-    Para la mejor experiencia, recomendamos salir a primera hora de la mañana (cuando la
-    luz es espectacular y el pantano está más tranquilo) o al atardecer. En ambas horas
-    la fauna es más activa y el ambiente más mágico.
-  </p>
+  <p>Para la mejor experiencia, recomendamos salir a primera hora de la mañana (cuando la luz es espectacular y el pantano está más tranquilo) o al atardecer. En ambas horas la fauna es más activa y el ambiente más mágico.</p>
+`;
+const bodyHtml = cms?.body?.trim() ? cms.body : DEFAULT_BODY;
+---
 
-  {cmsBody && <Fragment set:html={cmsBody} />}
+<ActivityLayout
+  title={title}
+  description={description}
+  image={image}
+  imageAlt={imageAlt}
+  tag={tag}
+  duration={duration}
+  minAge={minAge}
+  price={price}
+  included={included}
+>
+
+  <Fragment set:html={bodyHtml} />
 
 </ActivityLayout>
