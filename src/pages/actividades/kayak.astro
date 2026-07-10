@@ -25,6 +25,11 @@ const cmsBody = cms?.body ?? '';
   included={included}
 >
 
+  {cmsBody ? (
+    <div class="cms-body" set:html={cmsBody} />
+  ) : (
+  <Fragment>
+
   <h2>¿Qué es el kayak en Lacwake?</h2>
   <p>
     El kayak es la actividad estrella de Lacwake. Nuestro pantano ofrece las condiciones
@@ -76,6 +81,7 @@ const cmsBody = cms?.body ?? '';
     <li>Ganas de disfrutar.</li>
   </ul>
 
-  {cmsBody && <Fragment set:html={cmsBody} />}
+  </Fragment>
+  )}
 
 </ActivityLayout>

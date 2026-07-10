@@ -253,6 +253,15 @@ const {
     margin: 1.75rem 0 0.5rem;
   }
 
+  /* Cuerpo inyectado desde el CMS (set:html, sin cid de scoping → :global).
+     pre-line respeta los \n planos del contenido legacy y es inocuo con el
+     HTML de TipTap (<p>/<br>, sin \n crudos). NO aplicar a .activity-content:
+     los párrafos hardcodeados llevan saltos de formato del código fuente
+     que pre-line convertiría en cortes visibles (CIBA-2388). */
+  .activity-content :global(.cms-body) {
+    white-space: pre-line;
+  }
+
   .activity-content p {
     margin-bottom: 1.25rem;
   }

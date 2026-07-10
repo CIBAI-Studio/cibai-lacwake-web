@@ -25,6 +25,11 @@ const cmsBody = cms?.body ?? '';
   included={included}
 >
 
+  {cmsBody ? (
+    <div class="cms-body" set:html={cmsBody} />
+  ) : (
+  <Fragment>
+
   <h2>La actividad más popular para familias</h2>
   <p>
     Los hidropedales de Lacwake son la opción favorita de las familias que visitan el
@@ -74,6 +79,7 @@ const cmsBody = cms?.body ?? '';
     <li>Lleva un cambio de ropa si vienes con los más pequeños.</li>
   </ul>
 
-  {cmsBody && <Fragment set:html={cmsBody} />}
+  </Fragment>
+  )}
 
 </ActivityLayout>

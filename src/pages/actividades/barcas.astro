@@ -25,6 +25,11 @@ const cmsBody = cms?.body ?? '';
   included={included}
 >
 
+  {cmsBody ? (
+    <div class="cms-body" set:html={cmsBody} />
+  ) : (
+  <Fragment>
+
   <h2>La experiencia más auténtica del pantano</h2>
   <p>
     Si buscas desconectar de verdad y sumergirte en la calma absoluta, las barcas a remos
@@ -75,6 +80,7 @@ const cmsBody = cms?.body ?? '';
     la fauna es más activa y el ambiente más mágico.
   </p>
 
-  {cmsBody && <Fragment set:html={cmsBody} />}
+  </Fragment>
+  )}
 
 </ActivityLayout>

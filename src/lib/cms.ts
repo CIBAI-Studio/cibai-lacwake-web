@@ -243,6 +243,14 @@ export interface MenuItem {
   href: string;
 }
 
+/** Marca del footer editable desde el CMS (key `footer`, CIBA-2388 / punto 5 CIBA-2376). */
+export interface FooterContent {
+  /** URL de imagen de logo. Vacío ⇒ se renderiza `logoText`. */
+  logoImage: string;
+  logoText: string;
+  logoHref: string;
+}
+
 export interface SiteConfig {
   whatsappUrl: string;
   whatsappLabel: string;
@@ -378,6 +386,28 @@ export async function getSiteConfig(): Promise<SiteConfig> {
     emailUrl: s('email_url') ?? s('emailUrl') ?? FALLBACK_SITE_CONFIG.emailUrl,
     address: s('address') ?? FALLBACK_SITE_CONFIG.address,
     schedule: s('schedule') ?? FALLBACK_SITE_CONFIG.schedule,
+  };
+}
+
+const FALLBACK_FOOTER: FooterContent = {
+  logoImage: '',
+  logoText: 'Lacwake',
+  logoHref: '/',
+};
+
+/**
+ * Marca del footer desde la key `footer` del CMS. `logo_image` lo añade el
+ * ticket de admin hermano (punto 5 CIBA-2376); mientras no exista, cae a
+ * `logo_text` y el footer se ve idéntico al actual.
+ */
+export async function getFooterContent(): Promise<FooterContent> {
+  const c = await fetchSection('/api/content/footer');
+  if (!c) return FALLBACK_FOOTER;
+  const s = (f: string) => c[f] as string | undefined;
+  return {
+    logoImage: vStr(s('logo_image') ?? s('logoImage'), ''),
+    logoText: s('logo_text') ?? s('logoText') ?? FALLBACK_FOOTER.logoText,
+    logoHref: s('logo_href') ?? s('logoHref') ?? FALLBACK_FOOTER.logoHref,
   };
 }
 
@@ -738,7 +768,9 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
     price: s('price') ?? fb?.price,
     // Admin uses `features` (string[]); fallback type uses `included`
     included: (c.features as string[] | undefined) ?? (c.included as string[] | undefined) ?? fb?.included,
-    body: s('body') ?? fb?.body ?? '',
+    // El ActivityEditor del admin (TipTap) guarda el cuerpo en `html_content`;
+    // el seed legacy usaba `body` — se aceptan ambos (CIBA-2388)
+    body: s('body') ?? s('html_content') ?? fb?.body ?? '',
   };
 }
 
