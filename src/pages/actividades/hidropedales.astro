@@ -16,8 +16,8 @@ const cmsBody = cms?.body ?? '';
 <ActivityLayout
   title={title}
   description={description}
-  image="/assets/images/hidropedales.jpg"
-  imageAlt="Familia disfrutando de los hidropedales en el pantano en un día soleado"
+  image={cms?.image ?? "/assets/images/hidropedales.jpg"}
+  imageAlt={cms?.imageAlt ?? "Familia disfrutando de los hidropedales en el pantano en un día soleado"}
   tag={tag}
   duration={duration}
   minAge={minAge}

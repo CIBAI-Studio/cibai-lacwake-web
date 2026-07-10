@@ -16,8 +16,8 @@ const cmsBody = cms?.body ?? '';
 <ActivityLayout
   title={title}
   description={description}
-  image="/assets/images/barcas.jpg"
-  imageAlt="Pareja remando en una barca de madera por el pantano al atardecer"
+  image={cms?.image ?? "/assets/images/barcas.jpg"}
+  imageAlt={cms?.imageAlt ?? "Pareja remando en una barca de madera por el pantano al atardecer"}
   tag={tag}
   duration={duration}
   minAge={minAge}

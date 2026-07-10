@@ -18,8 +18,8 @@ const cmsBody = cms?.body ?? '';
 <ActivityLayout
   title={title}
   description={description}
-  image="/assets/redesign/wakeskate.webp"
-  imageAlt="Rider de wakeskate maniobrando sobre el agua tras la lancha"
+  image={cms?.image ?? "/assets/redesign/wakeskate.webp"}
+  imageAlt={cms?.imageAlt ?? "Rider de wakeskate maniobrando sobre el agua tras la lancha"}
   tag={tag}
   duration={duration}
   minAge={minAge}

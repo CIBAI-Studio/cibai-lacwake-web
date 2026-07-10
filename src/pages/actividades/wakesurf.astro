@@ -18,8 +18,8 @@ const cmsBody = cms?.body ?? '';
 <ActivityLayout
   title={title}
   description={description}
-  image="/assets/redesign/wakesurf.webp"
-  imageAlt="Wakesurfista deslizándose sobre la ola de la lancha en el pantano de la Baells"
+  image={cms?.image ?? "/assets/redesign/wakesurf.webp"}
+  imageAlt={cms?.imageAlt ?? "Wakesurfista deslizándose sobre la ola de la lancha en el pantano de la Baells"}
   tag={tag}
   duration={duration}
   minAge={minAge}

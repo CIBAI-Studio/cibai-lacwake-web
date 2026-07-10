@@ -199,6 +199,9 @@ export interface ActivityContent {
   price?: string;
   included?: string[];
   body: string;
+  /** Imagen inferior de la página de actividad, editable desde el admin (CIBA-2396). */
+  image?: string;
+  imageAlt?: string;
 }
 
 /**
@@ -769,8 +772,11 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
     // Admin uses `features` (string[]); fallback type uses `included`
     included: (c.features as string[] | undefined) ?? (c.included as string[] | undefined) ?? fb?.included,
     // El ActivityEditor del admin (TipTap) guarda el cuerpo en `html_content`;
-    // el seed legacy usaba `body` — se aceptan ambos (CIBA-2388)
-    body: s('body') ?? s('html_content') ?? fb?.body ?? '',
+    // el seed legacy usaba `body`. Prioridad html_content: el seed dejó `body`
+    // vacío/legacy y el admin sólo escribe html_content (CIBA-2396)
+    body: s('html_content') ?? s('body') ?? fb?.body ?? '',
+    image: s('image') ?? fb?.image,
+    imageAlt: s('imageAlt') ?? s('image_alt') ?? fb?.imageAlt,
   };
 }
 

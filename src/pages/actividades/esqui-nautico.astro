@@ -18,8 +18,8 @@ const cmsBody = cms?.body ?? '';
 <ActivityLayout
   title={title}
   description={description}
-  image="/assets/redesign/esqui-nautico.webp"
-  imageAlt="Esquiador náutico deslizándose sobre el pantano de la Baells con estela de agua"
+  image={cms?.image ?? "/assets/redesign/esqui-nautico.webp"}
+  imageAlt={cms?.imageAlt ?? "Esquiador náutico deslizándose sobre el pantano de la Baells con estela de agua"}
   tag={tag}
   duration={duration}
   minAge={minAge}
