@@ -27,6 +27,11 @@ const cmsBody = cms?.body ?? '';
   included={included}
 >
 
+  {cmsBody ? (
+    <div class="cms-body" set:html={cmsBody} />
+  ) : (
+  <Fragment>
+
   <h2>Adrenalina sobre el agua</h2>
   <p>
     Deportes de tabla y velocidad tras la lancha. Golden hour, spray y máxima
@@ -40,6 +45,7 @@ const cmsBody = cms?.body ?? '';
     te acompaña en el agua en todo momento.
   </p>
 
-  {cmsBody && <Fragment set:html={cmsBody} />}
+  </Fragment>
+  )}
 
 </ActivityLayout>
