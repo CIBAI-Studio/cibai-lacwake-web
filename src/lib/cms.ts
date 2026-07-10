@@ -293,11 +293,11 @@ const FALLBACK_MENU: MenuItem[] = [
 ];
 
 const FALLBACK_SITE_CONFIG: SiteConfig = {
-  whatsappUrl: 'https://wa.me/34617698984?text=Hola%2C%20quiero%20reservar%20una%20actividad%20en%20Lacwake',
+  whatsappUrl: 'https://wa.me/34676881982?text=Hola%2C%20quiero%20reservar%20una%20actividad%20en%20Lacwake',
   whatsappLabel: 'Reservar ahora',
   whatsappLabelShort: 'Reservar',
-  phone: '+34 617 69 89 84',
-  phoneUrl: 'tel:+34617698984',
+  phone: '+34 676 88 19 82',
+  phoneUrl: 'tel:+34676881982',
   email: 'info@lacwake.es',
   emailUrl: 'mailto:info@lacwake.es',
   address: 'Embalse de la Baells — Cercs (Berguedà, Barcelona)',
@@ -372,16 +372,46 @@ export async function getMenu(): Promise<MenuItem[]> {
   return fetchCMS<MenuItem[]>('/api/menu', FALLBACK_MENU);
 }
 
+/** `??` no salta `''`: un campo vaciado desde el admin debe caer al siguiente nivel (CIBA-2403). */
+function nonEmpty(v: unknown): string | undefined {
+  return typeof v === 'string' && v.trim() !== '' ? v : undefined;
+}
+
+/** Misma construcción que el preview del admin (WhatsAppEditor.jsx). */
+function buildWhatsAppUrl(phone: string, message: string): string | null {
+  const cleanPhone = phone.replace(/[\s\-+()]/g, '');
+  if (!cleanPhone) return null;
+  const encoded = encodeURIComponent(message || '');
+  return `https://wa.me/${cleanPhone}${encoded ? `?text=${encoded}` : ''}`;
+}
+
+/** `tel:` normalizado (sin espacios/guiones, con prefijo internacional). */
+function buildTelUrl(phone: string): string | null {
+  const clean = phone.replace(/[\s\-()]/g, '');
+  if (!clean) return null;
+  return `tel:${clean.startsWith('+') ? clean : `+${clean}`}`;
+}
+
 export async function getSiteConfig(): Promise<SiteConfig> {
-  const c = await fetchSection('/api/content/site_config');
-  if (!c) return FALLBACK_SITE_CONFIG;
-  const s = (f: string) => c[f] as string | undefined;
+  // La sección `whatsapp` del admin es la única fuente de verdad del nº de reserva
+  // (CIBA-2441); los campos whatsapp_url/phone de site_config quedan como compat.
+  const [c, wa] = await Promise.all([
+    fetchSection('/api/content/site_config'),
+    fetchSection('/api/content/whatsapp'),
+  ]);
+  const s = (f: string) => nonEmpty(c?.[f]);
+  const waPhone = nonEmpty(wa?.phone);
+  const waMessage = nonEmpty(wa?.message) ?? '';
   return {
-    whatsappUrl: s('whatsapp_url') ?? s('whatsappUrl') ?? FALLBACK_SITE_CONFIG.whatsappUrl,
+    whatsappUrl:
+      (waPhone && buildWhatsAppUrl(waPhone, waMessage)) ??
+      s('whatsapp_url') ?? s('whatsappUrl') ?? FALLBACK_SITE_CONFIG.whatsappUrl,
     whatsappLabel: s('whatsapp_label') ?? s('whatsappLabel') ?? FALLBACK_SITE_CONFIG.whatsappLabel,
     whatsappLabelShort: s('whatsapp_label_short') ?? s('whatsappLabelShort') ?? FALLBACK_SITE_CONFIG.whatsappLabelShort,
-    phone: s('phone') ?? FALLBACK_SITE_CONFIG.phone,
-    phoneUrl: s('phone_url') ?? s('phoneUrl') ?? FALLBACK_SITE_CONFIG.phoneUrl,
+    phone: waPhone ?? s('phone') ?? FALLBACK_SITE_CONFIG.phone,
+    phoneUrl:
+      (waPhone && buildTelUrl(waPhone)) ??
+      s('phone_url') ?? s('phoneUrl') ?? FALLBACK_SITE_CONFIG.phoneUrl,
     email: s('email') ?? FALLBACK_SITE_CONFIG.email,
     emailUrl: s('email_url') ?? s('emailUrl') ?? FALLBACK_SITE_CONFIG.emailUrl,
     address: s('address') ?? FALLBACK_SITE_CONFIG.address,
