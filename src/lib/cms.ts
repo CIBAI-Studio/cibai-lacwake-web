@@ -345,6 +345,10 @@ function vEnum<T extends string>(v: unknown, allowed: readonly T[], fb: T): T {
 function vStr(v: unknown, fb: string): string {
   return typeof v === 'string' && v.trim() !== '' ? v : fb;
 }
+/** String vacío o solo espacios → undefined, para que `??` caiga al siguiente candidato. */
+function nonEmpty(v: string | undefined): string | undefined {
+  return v && v.trim() !== '' ? v : undefined;
+}
 
 const FALLBACK_WHY: WhyContent = {
   label: 'Nuestra propuesta',
@@ -762,21 +766,23 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
   if (!c) return fb;
   const s = (f: string) => c[f] as string | undefined;
   return {
+    // Campo vaciado desde el admin (`""`) = ausente: cae a la semilla/hardcode
+    // en vez de propagar el vacío al layout (CIBA-2403).
     // Admin uses `page_title`; DB seed used `title` — accept both
-    title: s('page_title') ?? s('title') ?? fb?.title ?? '',
-    description: s('description') ?? fb?.description ?? '',
-    tag: s('tag') ?? fb?.tag,
-    duration: s('duration') ?? fb?.duration,
-    minAge: s('min_age') ?? s('minAge') ?? fb?.minAge,
-    price: s('price') ?? fb?.price,
+    title: nonEmpty(s('page_title')) ?? nonEmpty(s('title')) ?? fb?.title ?? '',
+    description: nonEmpty(s('description')) ?? fb?.description ?? '',
+    tag: nonEmpty(s('tag')) ?? fb?.tag,
+    duration: nonEmpty(s('duration')) ?? fb?.duration,
+    minAge: nonEmpty(s('min_age')) ?? nonEmpty(s('minAge')) ?? fb?.minAge,
+    price: nonEmpty(s('price')) ?? fb?.price,
     // Admin uses `features` (string[]); fallback type uses `included`
     included: (c.features as string[] | undefined) ?? (c.included as string[] | undefined) ?? fb?.included,
     // El ActivityEditor del admin (TipTap) guarda el cuerpo en `html_content`;
     // el seed legacy usaba `body`. Prioridad html_content: el seed dejó `body`
     // vacío/legacy y el admin sólo escribe html_content (CIBA-2396)
-    body: s('html_content') ?? s('body') ?? fb?.body ?? '',
-    image: s('image') ?? fb?.image,
-    imageAlt: s('imageAlt') ?? s('image_alt') ?? fb?.imageAlt,
+    body: nonEmpty(s('html_content')) ?? nonEmpty(s('body')) ?? fb?.body ?? '',
+    image: nonEmpty(s('image')) ?? fb?.image,
+    imageAlt: nonEmpty(s('imageAlt')) ?? nonEmpty(s('image_alt')) ?? fb?.imageAlt,
   };
 }
 
