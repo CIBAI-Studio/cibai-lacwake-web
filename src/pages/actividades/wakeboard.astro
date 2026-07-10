@@ -13,13 +13,15 @@ const minAge = cms?.minAge;
 const price = cms?.price;
 const included = cms?.included ?? [];
 const cmsBody = cms?.body ?? '';
+const image = cms?.image ?? '/assets/redesign/wakeboard.webp';
+const imageAlt = cms?.imageAlt ?? 'Rider de wakeboard saltando la estela de la lancha con spray de agua a contraluz';
 ---
 
 <ActivityLayout
   title={title}
   description={description}
-  image="/assets/redesign/wakeboard.webp"
-  imageAlt="Rider de wakeboard saltando la estela de la lancha con spray de agua a contraluz"
+  image={image}
+  imageAlt={imageAlt}
   tag={tag}
   duration={duration}
   minAge={minAge}

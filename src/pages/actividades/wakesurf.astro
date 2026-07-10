@@ -13,13 +13,15 @@ const minAge = cms?.minAge;
 const price = cms?.price;
 const included = cms?.included ?? [];
 const cmsBody = cms?.body ?? '';
+const image = cms?.image ?? '/assets/redesign/wakesurf.webp';
+const imageAlt = cms?.imageAlt ?? 'Wakesurfista deslizándose sobre la ola de la lancha en el pantano de la Baells';
 ---
 
 <ActivityLayout
   title={title}
   description={description}
-  image="/assets/redesign/wakesurf.webp"
-  imageAlt="Wakesurfista deslizándose sobre la ola de la lancha en el pantano de la Baells"
+  image={image}
+  imageAlt={imageAlt}
   tag={tag}
   duration={duration}
   minAge={minAge}

@@ -199,6 +199,9 @@ export interface ActivityContent {
   price?: string;
   included?: string[];
   body: string;
+  /** Imagen hero/inferior elegida en el ActivityEditor del admin (MediaPicker, CIBA-2348). */
+  image?: string;
+  imageAlt?: string;
 }
 
 /**
@@ -341,6 +344,10 @@ function vEnum<T extends string>(v: unknown, allowed: readonly T[], fb: T): T {
 }
 function vStr(v: unknown, fb: string): string {
   return typeof v === 'string' && v.trim() !== '' ? v : fb;
+}
+/** String vacío o solo espacios → undefined, para que `??` caiga al siguiente candidato. */
+function nonEmpty(v: string | undefined): string | undefined {
+  return v && v.trim() !== '' ? v : undefined;
 }
 
 const FALLBACK_WHY: WhyContent = {
@@ -769,8 +776,14 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
     // Admin uses `features` (string[]); fallback type uses `included`
     included: (c.features as string[] | undefined) ?? (c.included as string[] | undefined) ?? fb?.included,
     // El ActivityEditor del admin (TipTap) guarda el cuerpo en `html_content`;
-    // el seed legacy usaba `body` — se aceptan ambos (CIBA-2388)
-    body: s('body') ?? s('html_content') ?? fb?.body ?? '',
+    // el seed legacy usaba `body` — se aceptan ambos (CIBA-2388). Prioridad
+    // html_content: las keys wake* traen `body: ""` legacy que con `??` a secas
+    // ensombrecería las ediciones del admin (CIBA-2399); string vacío = ausente.
+    body: nonEmpty(s('html_content')) ?? nonEmpty(s('body')) ?? fb?.body ?? '',
+    // El admin guarda la imagen en `image`/`image_alt` (CIBA-2348); sin CMS la
+    // página conserva su hardcode como fallback (CIBA-2399)
+    image: nonEmpty(s('image')) ?? fb?.image,
+    imageAlt: nonEmpty(s('image_alt')) ?? nonEmpty(s('imageAlt')) ?? fb?.imageAlt,
   };
 }
 

@@ -11,13 +11,15 @@ const minAge = cms?.minAge ?? '4';
 const price = cms?.price ?? 'Desde 8 €/h';
 const included = cms?.included ?? ['Barca a remos (2-4 plazas)', 'Remos y accesorios', 'Chalecos salvavidas', 'Instrucciones básicas de remo'];
 const cmsBody = cms?.body ?? '';
+const image = cms?.image ?? '/assets/images/barcas.jpg';
+const imageAlt = cms?.imageAlt ?? 'Pareja remando en una barca de madera por el pantano al atardecer';
 ---
 
 <ActivityLayout
   title={title}
   description={description}
-  image="/assets/images/barcas.jpg"
-  imageAlt="Pareja remando en una barca de madera por el pantano al atardecer"
+  image={image}
+  imageAlt={imageAlt}
   tag={tag}
   duration={duration}
   minAge={minAge}

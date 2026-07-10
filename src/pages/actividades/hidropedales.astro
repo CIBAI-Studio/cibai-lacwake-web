@@ -11,13 +11,15 @@ const minAge = cms?.minAge ?? '4';
 const price = cms?.price ?? 'Desde 10 €/h';
 const included = cms?.included ?? ['Hidropedal (2-4 plazas)', 'Chalecos salvavidas', 'Instrucciones de uso', 'Asistencia en todo momento'];
 const cmsBody = cms?.body ?? '';
+const image = cms?.image ?? '/assets/images/hidropedales.jpg';
+const imageAlt = cms?.imageAlt ?? 'Familia disfrutando de los hidropedales en el pantano en un día soleado';
 ---
 
 <ActivityLayout
   title={title}
   description={description}
-  image="/assets/images/hidropedales.jpg"
-  imageAlt="Familia disfrutando de los hidropedales en el pantano en un día soleado"
+  image={image}
+  imageAlt={imageAlt}
   tag={tag}
   duration={duration}
   minAge={minAge}

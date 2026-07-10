@@ -11,13 +11,15 @@ const minAge = cms?.minAge ?? '6';
 const price = cms?.price ?? 'Desde 12 €/h';
 const included = cms?.included ?? ['Kayak (individual o doble)', 'Chaleco salvavidas', 'Remo y accesorios', 'Briefing de seguridad', 'Asistencia en agua'];
 const cmsBody = cms?.body ?? '';
+const image = cms?.image ?? '/assets/images/kayak.jpg';
+const imageAlt = cms?.imageAlt ?? 'Persona practicando kayak en aguas tranquilas del pantano al amanecer';
 ---
 
 <ActivityLayout
   title={title}
   description={description}
-  image="/assets/images/kayak.jpg"
-  imageAlt="Persona practicando kayak en aguas tranquilas del pantano al amanecer"
+  image={image}
+  imageAlt={imageAlt}
   tag={tag}
   duration={duration}
   minAge={minAge}
