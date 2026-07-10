@@ -16,8 +16,8 @@ const cmsBody = cms?.body ?? '';
 <ActivityLayout
   title={title}
   description={description}
-  image="/assets/images/kayak.jpg"
-  imageAlt="Persona practicando kayak en aguas tranquilas del pantano al amanecer"
+  image={cms?.image ?? "/assets/images/kayak.jpg"}
+  imageAlt={cms?.imageAlt ?? "Persona practicando kayak en aguas tranquilas del pantano al amanecer"}
   tag={tag}
   duration={duration}
   minAge={minAge}

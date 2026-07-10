@@ -18,8 +18,8 @@ const cmsBody = cms?.body ?? '';
 <ActivityLayout
   title={title}
   description={description}
-  image="/assets/redesign/wakeboard.webp"
-  imageAlt="Rider de wakeboard saltando la estela de la lancha con spray de agua a contraluz"
+  image={cms?.image ?? "/assets/redesign/wakeboard.webp"}
+  imageAlt={cms?.imageAlt ?? "Rider de wakeboard saltando la estela de la lancha con spray de agua a contraluz"}
   tag={tag}
   duration={duration}
   minAge={minAge}
