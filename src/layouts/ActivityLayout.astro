@@ -237,7 +237,16 @@ const {
     color: #292524;
   }
 
-  .activity-content h2 {
+  /* Tipografía del cuerpo de actividad. Se usa :global() porque el cuerpo llega
+     por dos vías, NINGUNA con el cid de scoping de este layout (CIBA-2413):
+       1. Inyectado desde el CMS vía `set:html` en `.cms-body` (HTML crudo runtime).
+       2. Fallback hardcodeado slotteado desde la página `<slug>.astro` (sin <style>
+          propio → sus <h2>/<p> tampoco reciben cid).
+     Sin :global, `.activity-content h2` compila a `h2[data-astro-cid-…]` y no casa
+     con ninguno de los dos → el cuerpo quedaba con estilos por defecto del navegador.
+     El descendiente global se acota bajo `.activity-content` (contenedor único de
+     este layout), así no se filtra al sidebar (aside hermano, fuera del contenedor). */
+  .activity-content :global(h2) {
     font-family: var(--font-heading);
     font-size: 1.5rem;
     font-weight: 600;
@@ -245,7 +254,7 @@ const {
     margin: 2.5rem 0 0.875rem;
   }
 
-  .activity-content h3 {
+  .activity-content :global(h3) {
     font-family: var(--font-heading);
     font-size: 1.125rem;
     font-weight: 600;
@@ -262,16 +271,16 @@ const {
     white-space: pre-line;
   }
 
-  .activity-content p {
+  .activity-content :global(p) {
     margin-bottom: 1.25rem;
   }
 
-  .activity-content ul, .activity-content ol {
+  .activity-content :global(ul), .activity-content :global(ol) {
     padding-left: 1.5rem;
     margin-bottom: 1.25rem;
   }
 
-  .activity-content li {
+  .activity-content :global(li) {
     margin-bottom: 0.4rem;
   }
 
