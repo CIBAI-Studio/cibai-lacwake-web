@@ -308,11 +308,11 @@ const FALLBACK_MENU: MenuItem[] = [
 ];
 
 const FALLBACK_SITE_CONFIG: SiteConfig = {
-  whatsappUrl: 'https://wa.me/34617698984?text=Hola%2C%20quiero%20reservar%20una%20actividad%20en%20Lacwake',
+  whatsappUrl: 'https://wa.me/34676881982?text=Hola%2C%20quiero%20reservar%20una%20actividad%20en%20Lacwake',
   whatsappLabel: 'Reservar ahora',
   whatsappLabelShort: 'Reservar',
-  phone: '+34 617 69 89 84',
-  phoneUrl: 'tel:+34617698984',
+  phone: '+34 676 88 19 82',
+  phoneUrl: 'tel:+34676881982',
   email: 'info@lacwake.es',
   emailUrl: 'mailto:info@lacwake.es',
   address: 'Embalse de la Baells — Cercs (Berguedà, Barcelona)',
@@ -391,16 +391,33 @@ export async function getMenu(): Promise<MenuItem[]> {
   return fetchCMS<MenuItem[]>('/api/menu', FALLBACK_MENU);
 }
 
+/** Misma derivación que el admin (WhatsAppEditor.jsx): wa.me/<phone limpio>?text=<msg>. */
+function buildWhatsAppUrl(phone: string, message: string | undefined): string {
+  const cleanPhone = phone.replace(/[\s\-+()]/g, '');
+  const encoded = encodeURIComponent(message || '');
+  return `https://wa.me/${cleanPhone}${encoded ? `?text=${encoded}` : ''}`;
+}
+
 export async function getSiteConfig(): Promise<SiteConfig> {
-  const c = await fetchSection('/api/content/site_config');
-  if (!c) return FALLBACK_SITE_CONFIG;
-  const s = (f: string) => c[f] as string | undefined;
+  // La sección `whatsapp` (la que edita el admin en admin.lacwake.es) es la
+  // fuente primaria del número de reserva (CIBA-2443); `site_config` queda como
+  // fuente secundaria de compatibilidad y sigue siendo dueña de labels/contacto.
+  const [wa, c] = await Promise.all([
+    fetchSection('/api/content/whatsapp'),
+    fetchSection('/api/content/site_config'),
+  ]);
+  if (!wa && !c) return FALLBACK_SITE_CONFIG;
+  const s = (f: string) => (c ? (c[f] as string | undefined) : undefined);
+  const waPhone = nonEmpty(wa ? (wa['phone'] as string | undefined) : undefined);
+  const waMessage = wa ? (wa['message'] as string | undefined) : undefined;
   return {
-    whatsappUrl: s('whatsapp_url') ?? s('whatsappUrl') ?? FALLBACK_SITE_CONFIG.whatsappUrl,
+    whatsappUrl: (waPhone ? buildWhatsAppUrl(waPhone, waMessage) : undefined)
+      ?? nonEmpty(s('whatsapp_url')) ?? nonEmpty(s('whatsappUrl')) ?? FALLBACK_SITE_CONFIG.whatsappUrl,
     whatsappLabel: s('whatsapp_label') ?? s('whatsappLabel') ?? FALLBACK_SITE_CONFIG.whatsappLabel,
     whatsappLabelShort: s('whatsapp_label_short') ?? s('whatsappLabelShort') ?? FALLBACK_SITE_CONFIG.whatsappLabelShort,
-    phone: s('phone') ?? FALLBACK_SITE_CONFIG.phone,
-    phoneUrl: s('phone_url') ?? s('phoneUrl') ?? FALLBACK_SITE_CONFIG.phoneUrl,
+    phone: waPhone ?? nonEmpty(s('phone')) ?? FALLBACK_SITE_CONFIG.phone,
+    phoneUrl: (waPhone ? `tel:${waPhone.replace(/[\s\-()]/g, '')}` : undefined)
+      ?? nonEmpty(s('phone_url')) ?? nonEmpty(s('phoneUrl')) ?? FALLBACK_SITE_CONFIG.phoneUrl,
     email: s('email') ?? FALLBACK_SITE_CONFIG.email,
     emailUrl: s('email_url') ?? s('emailUrl') ?? FALLBACK_SITE_CONFIG.emailUrl,
     address: s('address') ?? FALLBACK_SITE_CONFIG.address,
