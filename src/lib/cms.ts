@@ -142,7 +142,7 @@ export interface HeroSlide {
     soundIntent: 'on' | 'off';
   };
   /**
-   * Duración de permanencia del slide en segundos (1–30). Opcional y aditivo:
+   * Duración de permanencia del slide en segundos (1–60). Opcional y aditivo:
    * si está ausente o fuera de rango, el carrusel hereda `rotation.intervalMs`.
    */
   duration?: number;
@@ -596,14 +596,14 @@ function parseHeroVideo(videoRaw: Raw): HeroSlide['video'] {
 }
 
 /**
- * Duración por slide en segundos (1–30), campo opcional y aditivo del contrato.
+ * Duración por slide en segundos (1–60), campo opcional y aditivo del contrato.
  * Devuelve `undefined` cuando está ausente o fuera de rango → el carrusel hereda
  * el intervalo global (`rotation.intervalMs`). NO clampa: un valor inválido no
- * debe silenciarse a 1/30 s, sino delegar en el default global.
+ * debe silenciarse a 1/60 s, sino delegar en el default global.
  */
 function parseSlideDuration(v: unknown): number | undefined {
   const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) && n >= 1 && n <= 30 ? n : undefined;
+  return Number.isFinite(n) && n >= 1 && n <= 60 ? n : undefined;
 }
 
 /** Convierte un HeroSlide crudo del contrato backend en un slide resuelto. */
