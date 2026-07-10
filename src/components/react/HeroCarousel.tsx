@@ -13,6 +13,14 @@
  * El fondo (vídeo/imagen) y la capa de texto son por-slide. El vídeo conserva
  * autoplay muted + preload:auto + auto-unmute al primer gesto (patrón CIBA-2201);
  * los vídeos inactivos se pausan para no consumir CPU/red.
+ *
+ * Bloques de texto rotatorios (CIBA-2453/2455): cada slide lleva `blocks[]`
+ * (≥1, sintetizado por cms.ts si el CMS no lo envía). Con ≥2 bloques rotan
+ * secuencialmente dentro del slide con fade+y (childVariants); el fondo
+ * permanece. La posición (layout {h,v}) pasa a ser por-bloque. Semántica §3
+ * del contrato: último bloque sin duration → hold hasta fin de slide;
+ * intermedio sin duration → 6 s; el cambio de slide corta el ciclo y al
+ * (re)entrar se reinicia en blocks[0].
  */
 import {
   useCallback,
@@ -24,13 +32,16 @@ import {
   type KeyboardEvent,
 } from 'react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'framer-motion';
-import type { HeroRotation, HeroSlide } from '../../lib/cms';
+import type { HeroRotation, HeroSlide, HeroTextBlock } from '../../lib/cms';
 import { resolveHeroFont } from '../../lib/heroFonts';
 
 interface Props {
   slides: HeroSlide[];
   rotation: HeroRotation;
 }
+
+/** Default de permanencia de un bloque intermedio sin `duration` (contrato §3). */
+const HERO_BLOCK_DEFAULT_MS = 6000;
 
 // ─── Variantes de movimiento (conserva la firma del 'giro' aprobado) ──────────
 const childVariants: Variants = {
@@ -77,21 +88,21 @@ function slideStyleVars(slide: HeroSlide): CSSProperties {
 
 // ─── Bloque de texto (overline / título / subtítulo / CTAs) ───────────────────
 function HeroText({
-  slide,
+  block,
   reduced,
   stagger,
 }: {
-  slide: HeroSlide;
+  block: HeroTextBlock;
   reduced: boolean;
   stagger: number;
 }) {
-  const hasOverline = typeof slide.overline === 'string' && slide.overline.trim() !== '';
-  const primaryLabel = slide.ctaLabel || 'Reservar ahora';
-  const secondaryLabel = slide.ctaSecondaryLabel || 'Ver actividades';
+  const hasOverline = typeof block.overline === 'string' && block.overline.trim() !== '';
+  const primaryLabel = block.ctaLabel || 'Reservar ahora';
+  const secondaryLabel = block.ctaSecondaryLabel || 'Ver actividades';
 
   const primary = (
     <a
-      href={slide.ctaUrl}
+      href={block.ctaUrl}
       className="btn-reserve"
       target="_blank"
       rel="noopener noreferrer"
@@ -101,7 +112,7 @@ function HeroText({
     </a>
   );
   const secondary = (
-    <a href={slide.ctaSecondaryUrl} className="btn-secondary">
+    <a href={block.ctaSecondaryUrl} className="btn-secondary">
       {secondaryLabel}
     </a>
   );
@@ -109,9 +120,9 @@ function HeroText({
   if (reduced) {
     return (
       <div className="hero-content">
-        {hasOverline && <div className="hero-tag">{slide.overline}</div>}
-        <h1 className="hero-title">{slide.title}</h1>
-        <p className="hero-subtitle">{slide.subtitle}</p>
+        {hasOverline && <div className="hero-tag">{block.overline}</div>}
+        <h1 className="hero-title">{block.title}</h1>
+        <p className="hero-subtitle">{block.subtitle}</p>
         <div className="hero-actions">
           {primary}
           {secondary}
@@ -130,14 +141,14 @@ function HeroText({
     >
       {hasOverline && (
         <motion.div className="hero-tag" variants={childVariants}>
-          {slide.overline}
+          {block.overline}
         </motion.div>
       )}
       <motion.h1 className="hero-title" variants={childVariants}>
-        {slide.title}
+        {block.title}
       </motion.h1>
       <motion.p className="hero-subtitle" variants={childVariants}>
-        {slide.subtitle}
+        {block.subtitle}
       </motion.p>
       <motion.div className="hero-actions" variants={childVariants}>
         {primary}
@@ -152,6 +163,10 @@ export default function HeroCarousel({ slides, rotation }: Props) {
   const isMulti = slides.length >= 2;
 
   const [active, setActive] = useState(0);
+  // Cursor del ciclo de bloques: lleva el slide al que pertenece para que el
+  // reset al (re)entrar a un slide sea síncrono con el cambio de `active`
+  // (sin frame intermedio mostrando el bloque del slide anterior).
+  const [blockCursor, setBlockCursor] = useState({ slide: 0, idx: 0 });
   const [paused, setPaused] = useState(false);
   const [soundOn, setSoundOn] = useState(false);
   const [soundVisible, setSoundVisible] = useState(false);
@@ -163,6 +178,20 @@ export default function HeroCarousel({ slides, rotation }: Props) {
 
   const activeSlide = slides[active] ?? slides[0];
   const activeIsVideo = activeSlide?.background.type === 'video';
+
+  // Bloques del slide activo (cms.ts garantiza ≥1). El cursor sólo vale para
+  // el slide al que pertenece; en cualquier otro caso el ciclo está en 0.
+  const blocks = activeSlide?.blocks ?? [];
+  const blockCount = blocks.length;
+  const blockIdx = Math.min(
+    blockCursor.slide === active ? blockCursor.idx : 0,
+    Math.max(0, blockCount - 1),
+  );
+  const activeBlock = blocks[blockIdx];
+  const hasBlockRotation = useMemo(
+    () => slides.some((s) => (s.blocks?.length ?? 0) >= 2),
+    [slides],
+  );
 
   const styleVarsByIndex = useMemo(() => slides.map(slideStyleVars), [slides]);
 
@@ -181,6 +210,8 @@ export default function HeroCarousel({ slides, rotation }: Props) {
       }
       if (manual) setLiveMode('polite');
       setActive(next);
+      // Cambio de slide corta el ciclo de bloques y reinicia en blocks[0] (§3).
+      setBlockCursor({ slide: next, idx: 0 });
     },
     [slides.length, rotation.loop],
   );
@@ -223,6 +254,24 @@ export default function HeroCarousel({ slides, rotation }: Props) {
       if (timer) clearTimeout(timer);
     };
   }, [active, activeSlide, paused, reduced, isMulti, activeIsVideo, rotation, goTo]);
+
+  // ─── Rotación de bloques dentro del slide (contrato CIBA-2453 §3) ────────────
+  // El último bloque nunca arranca timer de salida → hold hasta el cambio de
+  // slide (cubre Σ<slide); si Σ≥slide, el cambio de slide corta el ciclo vía
+  // goTo. Comparte las señales de pausa de la rotación de slides (hover /
+  // focus-within / tab-hidden — WCAG 2.2.2). Bajo prefers-reduced-motion la
+  // rotación continúa pero el swap es instantáneo (§4): los bloques son
+  // contenido, no decoración — a diferencia del autoplay de slides, ocultarlos
+  // dejaría texto inaccesible sin control manual equivalente a los dots.
+  useEffect(() => {
+    if (paused || blockCount < 2 || blockIdx >= blockCount - 1) return;
+    const duration = blocks[blockIdx]?.duration;
+    const ms = duration ? duration * 1000 : HERO_BLOCK_DEFAULT_MS;
+    const timer = setTimeout(() => {
+      setBlockCursor({ slide: active, idx: Math.min(blockIdx + 1, blockCount - 1) });
+    }, ms);
+    return () => clearTimeout(timer);
+  }, [active, blockIdx, blocks, blockCount, paused]);
 
   // ─── Gestión de vídeo por-slide: reproducir activo, pausar inactivos ──────────
   useEffect(() => {
@@ -296,13 +345,16 @@ export default function HeroCarousel({ slides, rotation }: Props) {
     return () => ac.abort();
   }, [active, activeIsVideo, reduced, activeSlide]);
 
+  // Hay contenido auto-rotante (slides o bloques) → aplican las pausas WCAG.
+  const hasAutoRotation = isMulti || hasBlockRotation;
+
   // ─── Pausa en pestaña oculta (WCAG 2.2.2) ─────────────────────────────────────
   useEffect(() => {
-    if (!isMulti) return;
+    if (!hasAutoRotation) return;
     const onVisibility = () => setPaused(document.hidden);
     document.addEventListener('visibilitychange', onVisibility);
     return () => document.removeEventListener('visibilitychange', onVisibility);
-  }, [isMulti]);
+  }, [hasAutoRotation]);
 
   // ─── Control de sonido del vídeo activo ───────────────────────────────────────
   const toggleSound = useCallback(() => {
@@ -399,10 +451,10 @@ export default function HeroCarousel({ slides, rotation }: Props) {
     <div
       className="hero-carousel"
       style={isMulti ? { touchAction: 'pan-y' } : undefined}
-      onMouseEnter={isMulti ? onMouseEnter : undefined}
-      onMouseLeave={isMulti ? onMouseLeave : undefined}
-      onFocusCapture={isMulti ? onFocusCapture : undefined}
-      onBlurCapture={isMulti ? onBlurCapture : undefined}
+      onMouseEnter={hasAutoRotation ? onMouseEnter : undefined}
+      onMouseLeave={hasAutoRotation ? onMouseLeave : undefined}
+      onFocusCapture={hasAutoRotation ? onFocusCapture : undefined}
+      onBlurCapture={hasAutoRotation ? onBlurCapture : undefined}
       onPointerDown={isMulti ? onPointerDown : undefined}
       onPointerMove={isMulti ? onPointerMove : undefined}
       onPointerUp={isMulti ? onPointerUp : undefined}
@@ -458,18 +510,24 @@ export default function HeroCarousel({ slides, rotation }: Props) {
         <div className="hero-overlay" aria-hidden="true" />
       </div>
 
-      {/* ─── Capa de contenido (texto por-slide) ─── */}
+      {/* ─── Capa de contenido (texto por-bloque; posición por-bloque §1) ─── */}
       <div
         className="hero-content-layer"
-        data-h={activeSlide?.layout.h}
-        data-v={activeSlide?.layout.v}
+        data-h={activeBlock?.layout.h ?? activeSlide?.layout.h}
+        data-v={activeBlock?.layout.v ?? activeSlide?.layout.v}
         aria-live={liveMode}
       >
         <div className="hero-content-wrapper">
           <AnimatePresence mode="wait" initial={false}>
-            <div key={active} className="hero-slide-text" style={styleVarsByIndex[active]}>
-              <HeroText slide={activeSlide} reduced={reduced} stagger={stagger} />
-            </div>
+            {activeBlock && (
+              <div
+                key={`${active}:${blockIdx}`}
+                className="hero-slide-text"
+                style={styleVarsByIndex[active]}
+              >
+                <HeroText block={activeBlock} reduced={reduced} stagger={stagger} />
+              </div>
+            )}
           </AnimatePresence>
         </div>
       </div>
