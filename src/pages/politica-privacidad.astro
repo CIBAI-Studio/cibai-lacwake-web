@@ -6,9 +6,9 @@ const legal = await getLegalContent('privacidad');
 ---
 
 <LegalLayout
-  title={legal?.title ?? "Política de Privacidad"}
+  title={legal?.title || "Política de Privacidad"}
   description="Política de privacidad de Lacwake. Cómo recogemos, usamos y protegemos tus datos personales."
-  lastUpdated={legal?.lastUpdated ?? "Junio 2025"}
+  lastUpdated={legal?.lastUpdated || "Junio 2025"}
 >
   {legal?.body ? (
     <Fragment set:html={legal.body} />

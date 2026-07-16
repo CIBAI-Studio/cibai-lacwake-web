@@ -6,9 +6,9 @@ const legal = await getLegalContent('cookies');
 ---
 
 <LegalLayout
-  title={legal?.title ?? "Política de Cookies"}
+  title={legal?.title || "Política de Cookies"}
   description="Política de cookies de Lacwake. Qué cookies usamos y cómo gestionarlas."
-  lastUpdated={legal?.lastUpdated ?? "Junio 2025"}
+  lastUpdated={legal?.lastUpdated || "Junio 2025"}
 >
   {legal?.body ? (
     <Fragment set:html={legal.body} />
