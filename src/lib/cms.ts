@@ -393,6 +393,19 @@ function nonEmpty(v: string | undefined): string | undefined {
   return v && v.trim() !== '' ? v : undefined;
 }
 
+/**
+ * Como `nonEmpty` pero para cuerpos HTML del admin: un TipTap "vacío" guarda
+ * `<p></p>` (o variantes con &nbsp;), que no es texto real. Sin este guard, la
+ * ficha vaciada desde el admin renderizaría un cuerpo en blanco en vez de caer
+ * a la semilla (mismo espíritu que CIBA-2403).
+ */
+function nonEmptyHtml(v: string | undefined): string | undefined {
+  if (!v) return undefined;
+  const hasMedia = /<(img|iframe|video|audio)\b/i.test(v);
+  const text = v.replace(/<[^>]*>/g, '').replace(/&nbsp;/gi, ' ').trim();
+  return hasMedia || text !== '' ? v : undefined;
+}
+
 const FALLBACK_WHY: WhyContent = {
   label: 'Nuestra propuesta',
   title: 'Naturaleza, agua y aventura al alcance de todos',
@@ -879,14 +892,39 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
       included: ['Hidropedal (2-4 plazas)', 'Chaleco salvavidas', 'Briefing de seguridad'],
       body: '',
     },
+    // Coherencia CIBA-2499: la página `/actividades/barcas` es «Barcas a remos»
+    // (así la titula la ficha admin en prod); la semilla anterior decía «barca
+    // eléctrica» y pisaba el título correcto cuando la API caía.
     barcas: {
-      title: 'Barcas',
-      description: 'Navega a tu ritmo en una barca eléctrica silenciosa.',
-      tag: 'Tranquilo',
+      title: 'Barcas a remos',
+      description: 'Rema tu propia barca por el pantano y conecta con la naturaleza a tu propio ritmo.',
+      tag: 'Relajante',
       duration: '1 – 3 horas',
+      minAge: '4',
+      price: 'Desde 8 €/h',
+      included: ['Barca a remos (2-4 plazas)', 'Remos y accesorios', 'Chalecos salvavidas', 'Instrucciones básicas de remo'],
+      body: '',
+    },
+    // ── Barca a motor y Paseos en barco (CIBA-2499) — páginas propias; semilla
+    //    espejo de las fichas sembradas en prod por fix-content-CIBA-2379.
+    'barca-motor': {
+      title: 'Barca a motor',
+      description: 'Toma el timón y explora el pantano a tu aire. Sin licencia, con briefing.',
+      tag: 'A tu aire',
+      duration: '1 – 3 horas',
+      minAge: '18',
+      price: 'Consultar',
+      included: ['Barca a motor', 'Chalecos salvavidas', 'Briefing de seguridad', 'Combustible incluido', 'Seguro de responsabilidad'],
+      body: '',
+    },
+    'paseos-barco': {
+      title: 'Paseos en barco',
+      description: 'Déjate llevar. Un recorrido guiado por los rincones más bonitos del pantano.',
+      tag: 'Guiado',
+      duration: '1 – 2 horas',
       minAge: '0',
-      price: 'Desde 15 €/h',
-      included: ['Barca eléctrica', 'Chalecos salvavidas', 'Briefing de seguridad'],
+      price: 'Consultar',
+      included: ['Embarque desde instalaciones Lacwake', 'Guía local', 'Chalecos salvavidas', 'Comentario sobre el entorno natural'],
       body: '',
     },
     // ── Wake & Esquí (CIBA-2345) — semilla = blurbs/tags existentes de
@@ -937,7 +975,7 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
     // El ActivityEditor del admin (TipTap) guarda el cuerpo en `html_content`;
     // el seed legacy usaba `body`. Prioridad html_content: el seed dejó `body`
     // vacío/legacy y el admin sólo escribe html_content (CIBA-2396)
-    body: nonEmpty(s('html_content')) ?? nonEmpty(s('body')) ?? fb?.body ?? '',
+    body: nonEmptyHtml(s('html_content')) ?? nonEmptyHtml(s('body')) ?? fb?.body ?? '',
     image: nonEmpty(s('image')) ?? fb?.image,
     imageAlt: nonEmpty(s('imageAlt')) ?? nonEmpty(s('image_alt')) ?? fb?.imageAlt,
   };
