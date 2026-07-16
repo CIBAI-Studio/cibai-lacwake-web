@@ -347,7 +347,7 @@ const FALLBACK_SITE_CONFIG: SiteConfig = {
   email: 'info@lacwake.es',
   emailUrl: 'mailto:info@lacwake.es',
   address: 'Embalse de la Baells — Cercs (Berguedà, Barcelona)',
-  schedule: 'Todos los días 9:00 – 20:00 (temporada)',
+  schedule: 'Todos los días 10:00 – 20:00 (temporada)',
 };
 
 const FALLBACK_HERO: HeroContent = {
@@ -444,28 +444,31 @@ function buildWhatsAppUrl(phone: string, message: string | undefined): string {
 
 export async function getSiteConfig(): Promise<SiteConfig> {
   // La sección `whatsapp` (la que edita el admin en admin.lacwake.es) es la
-  // fuente primaria del número de reserva (CIBA-2443); `site_config` queda como
-  // fuente secundaria de compatibilidad y sigue siendo dueña de labels/contacto.
+  // fuente primaria del número de reserva (CIBA-2443); los datos de contacto
+  // (horario/dirección/teléfono/email) viven en la sección `contacto`, la que
+  // edita el admin en Contacto (contrato CIBA-2497, sustituye a `site_config`
+  // que nunca existió en el CMS — CIBA-2498).
   const [wa, c] = await Promise.all([
     fetchSection('/api/content/whatsapp'),
-    fetchSection('/api/content/site_config'),
+    fetchSection('/api/content/contacto'),
   ]);
   if (!wa && !c) return FALLBACK_SITE_CONFIG;
-  const s = (f: string) => (c ? (c[f] as string | undefined) : undefined);
+  const s = (f: string) => nonEmpty(c ? (c[f] as string | undefined) : undefined);
   const waPhone = nonEmpty(wa ? (wa['phone'] as string | undefined) : undefined);
   const waMessage = wa ? (wa['message'] as string | undefined) : undefined;
+  const phone = waPhone ?? s('telefono') ?? FALLBACK_SITE_CONFIG.phone;
+  const email = s('email') ?? FALLBACK_SITE_CONFIG.email;
   return {
     whatsappUrl: (waPhone ? buildWhatsAppUrl(waPhone, waMessage) : undefined)
-      ?? nonEmpty(s('whatsapp_url')) ?? nonEmpty(s('whatsappUrl')) ?? FALLBACK_SITE_CONFIG.whatsappUrl,
-    whatsappLabel: s('whatsapp_label') ?? s('whatsappLabel') ?? FALLBACK_SITE_CONFIG.whatsappLabel,
-    whatsappLabelShort: s('whatsapp_label_short') ?? s('whatsappLabelShort') ?? FALLBACK_SITE_CONFIG.whatsappLabelShort,
-    phone: waPhone ?? nonEmpty(s('phone')) ?? FALLBACK_SITE_CONFIG.phone,
-    phoneUrl: (waPhone ? `tel:${waPhone.replace(/[\s\-()]/g, '')}` : undefined)
-      ?? nonEmpty(s('phone_url')) ?? nonEmpty(s('phoneUrl')) ?? FALLBACK_SITE_CONFIG.phoneUrl,
-    email: s('email') ?? FALLBACK_SITE_CONFIG.email,
-    emailUrl: s('email_url') ?? s('emailUrl') ?? FALLBACK_SITE_CONFIG.emailUrl,
-    address: s('address') ?? FALLBACK_SITE_CONFIG.address,
-    schedule: s('schedule') ?? FALLBACK_SITE_CONFIG.schedule,
+      ?? FALLBACK_SITE_CONFIG.whatsappUrl,
+    whatsappLabel: FALLBACK_SITE_CONFIG.whatsappLabel,
+    whatsappLabelShort: FALLBACK_SITE_CONFIG.whatsappLabelShort,
+    phone,
+    phoneUrl: `tel:${phone.replace(/[\s\-()]/g, '')}`,
+    email,
+    emailUrl: `mailto:${email}`,
+    address: s('direccion') ?? FALLBACK_SITE_CONFIG.address,
+    schedule: s('horario') ?? FALLBACK_SITE_CONFIG.schedule,
   };
 }
 
@@ -479,8 +482,13 @@ const FALLBACK_FOOTER: FooterContent = {
   navActividades: [
     { label: 'Kayak', href: '/actividades/kayak' },
     { label: 'Hidropedales', href: '/actividades/hidropedales' },
-    { label: 'Barcas', href: '/actividades/barcas' },
-    { label: 'Wakeboard & Esquí', href: '/actividades/wakeboard' },
+    { label: 'Barcas a remos', href: '/actividades/barcas' },
+    { label: 'Barca a motor', href: '/actividades/barca-motor' },
+    { label: 'Paseos en barco', href: '/actividades/paseos-barco' },
+    { label: 'Wakeboard', href: '/actividades/wakeboard' },
+    { label: 'Wakesurf', href: '/actividades/wakesurf' },
+    { label: 'Wakeskate', href: '/actividades/wakeskate' },
+    { label: 'Esquí náutico', href: '/actividades/esqui-nautico' },
     { label: 'Paddle Surf', href: '/actividades/sup' },
   ],
   navLegal: [
