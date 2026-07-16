@@ -1092,3 +1092,20 @@ export async function getHomeDividers(): Promise<HomeDividers> {
     between: parseDividerBetween(raw.between),
   };
 }
+
+/**
+ * CSS personalizado editable desde el admin (CIBA-2512, key `site_custom_css`,
+ * campo `css`). El middleware (src/middleware.ts) lo inyecta como último
+ * <style> del <head>, tras los <link> bundleados de Astro, para máxima
+ * prioridad en cascada. Key ausente, API caída o campo vacío ⇒ `''`
+ * (el middleware no inyecta la etiqueta). Defensa en profundidad: aunque el
+ * API ya rechaza `</style`, aquí se elimina cualquier secuencia que pudiera
+ * cerrar la etiqueta antes de inyectarlo en el HTML.
+ */
+export async function getCustomCss(): Promise<string> {
+  const c = await fetchSection('/api/content/site_custom_css');
+  const raw = c && typeof c['css'] === 'string' ? (c['css'] as string) : undefined;
+  const css = nonEmpty(raw);
+  if (!css) return '';
+  return css.replace(/<\/style/gi, '');
+}
