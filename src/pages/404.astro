@@ -1,0 +1,149 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+/**
+ * Página 404 con marca (CIBA-2534). Astro la sirve para cualquier ruta sin
+ * match y /actividades/[slug] hace `Astro.rewrite('/404')` cuando la ficha no
+ * existe en el CMS. Fijamos el status explícitamente por si el rewrite no lo
+ * hereda.
+ */
+Astro.response.status = 404;
+---
+
+<BaseLayout
+  title="Página no encontrada"
+  description="La página que buscas no existe o ha cambiado de sitio."
+  noIndex
+>
+  <section class="nf">
+    <div class="container-site nf-inner">
+      <p class="nf-code" aria-hidden="true">404</p>
+      <h1 class="nf-title">Esta orilla no existe</h1>
+      <p class="nf-lead">
+        La página que buscas no está en el pantano. Puede que el enlace haya
+        cambiado o que la actividad ya no esté disponible.
+      </p>
+      <div class="nf-actions">
+        <a href="/" class="nf-cta">Volver al inicio</a>
+        <a href="https://reservas.lacwake.es" class="nf-cta-secondary">
+          Ir a reservas
+        </a>
+      </div>
+    </div>
+
+    <!-- Onda decorativa al pie, coherente con los dividers de la home -->
+    <svg
+      class="nf-wave"
+      viewBox="0 0 1440 96"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M0 64 C 240 16, 480 16, 720 48 S 1200 96, 1440 48 L 1440 96 L 0 96 Z"
+        fill="var(--color-lake-100)"
+      />
+    </svg>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    position: relative;
+    min-height: calc(100dvh - 10rem);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding-block: 8rem 8rem;
+    background:
+      radial-gradient(55% 45% at 85% 8%, var(--color-lake-100) 0%, transparent 65%),
+      var(--color-cream);
+  }
+
+  .nf-inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  .nf-code {
+    font-family: var(--font-heading);
+    font-size: clamp(4.5rem, 15vw, 9rem);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+    color: transparent;
+    -webkit-text-stroke: 2px var(--color-teal-pastel);
+    margin: 0 0 1.25rem;
+  }
+
+  .nf-title {
+    font-family: var(--font-heading);
+    font-size: clamp(1.75rem, 5vw, 2.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #1c1917;
+    margin: 0 0 1rem;
+  }
+
+  .nf-lead {
+    font-size: 1.075rem;
+    line-height: 1.65;
+    color: #57534e; /* AA sobre cream */
+    max-width: 480px;
+    margin: 0 0 2.25rem;
+  }
+
+  .nf-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .nf-cta,
+  .nf-cta-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 160ms ease, border-color 160ms ease;
+  }
+
+  .nf-cta {
+    background: var(--color-sun-pastel);
+    color: #1e293b; /* regla dura AA del botón sun (CIBA-2305) */
+  }
+
+  .nf-cta:hover {
+    background: var(--color-sun-pastel-hover);
+  }
+
+  .nf-cta-secondary {
+    border: 2px solid var(--color-teal-pastel);
+    color: var(--color-teal-ink); /* AA 5.12 */
+  }
+
+  .nf-cta-secondary:hover {
+    border-color: var(--color-teal-ink);
+    background: rgba(92, 192, 180, 0.12);
+  }
+
+  .nf-wave {
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    width: 100%;
+    height: clamp(3rem, 8vw, 6rem);
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nf-cta,
+    .nf-cta-secondary {
+      transition: none;
+    }
+  }
+</style>
