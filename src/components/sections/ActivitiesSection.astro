@@ -1,12 +1,7 @@
 ---
 import ActivityTile from '../ActivityTile.astro';
 import { ACTIVITY_FAMILIES, type Activity } from '../../config/actividades';
-import {
-  getActivitiesIndex,
-  getHomeContent,
-  type ActivityCardFamily,
-  type HomeActivity,
-} from '../../lib/cms';
+import { getHomeContent, type HomeActivity } from '../../lib/cms';
 // Line-art recoloreable (currentColor) → inline para heredar el teal (punto 4)
 import montanasSolPuente from '../../../public/assets/redesign/decor/montanas-sol-puente.svg?raw';
 
@@ -16,83 +11,74 @@ interface Props {
 
 const { whatsappUrl } = Astro.props;
 
-// Cards pilotables desde la key `home` del CMS (CIBA-2345). Sin CMS → mapa vacío
-// → se renderiza el catálogo semilla sin cambios (home idéntica).
+// ── Fuente única: admin «Home (tarjetas)» (CIBA-2538) ────────────────────────
+// La key `home.activities` del CMS es la lista AUTORITATIVA: se pinta exactamente
+// lo que hay en admin — ni catálogo mergeado ni tarjetas autogeneradas desde el
+// índice de actividades (origen de las 3 Kayak fantasma en «Navega sin prisa»).
+// Sólo si el CMS está caído o la key no existe (`home === null`) se cae al
+// catálogo semilla completo para no dejar la sección en blanco.
 const home = await getHomeContent();
-const overrides = new Map<string, HomeActivity>(home.activities.map((a) => [a.id, a]));
 
-/** Aplica el override CMS sobre la card del catálogo (sólo campos no vacíos). */
 const pick = (o: string | undefined, fb: string): string =>
   o !== undefined && o.trim() !== '' ? o : fb;
 
-function resolveActivity(base: Activity, o?: HomeActivity): Activity {
-  if (!o) return base;
+// Semilla por slug: arte y copy de respaldo para cards del admin con campos vacíos.
+const seedBySlug = new Map(
+  ACTIVITY_FAMILIES.flatMap((f) => f.activities.map((a) => [a.slug, a] as const)),
+);
+
+/** Card del admin → modelo de render, con la semilla como fallback por campo. */
+function toActivity(card: HomeActivity): Activity {
+  const seed = seedBySlug.get(card.id);
   return {
-    ...base,
-    name: pick(o.title, base.name),
-    blurb: pick(o.blurb, base.blurb),
-    tag: pick(o.tag, base.tag),
-    image: pick(o.image, base.image),
-    imageAlt: pick(o.imageAlt, base.imageAlt),
-    href: pick(o.pageHref, base.href),
+    slug: card.id,
+    name: pick(card.title, seed?.name ?? card.id),
+    blurb: pick(card.blurb, seed?.blurb ?? ''),
+    tag: pick(card.tag, seed?.tag ?? ''),
+    image: pick(card.image, seed?.image ?? '/assets/images/hero-fallback.jpg'),
+    imageAlt: pick(
+      card.imageAlt,
+      seed?.imageAlt ?? `${pick(card.title, card.id)} en el pantano de la Baells`,
+    ),
+    href: pick(card.pageHref, seed?.href ?? `/actividades/${card.id}`),
   };
 }
 
-// ── Merge del índice CMS sobre el catálogo semilla (CIBA-2522) ──────────────
-// Baseline = ACTIVITY_FAMILIES intacto (CMS caído o endpoint sin desplegar →
-// `cmsIndex === null` → home idéntica a hoy). La clave de merge es el basename
-// del `href` de cada tarjeta: las 3 tarjetas kayak-* casan todas con la
-// actividad CMS `kayak` (contrato CIBA-2519).
-const cmsIndex = await getActivitiesIndex();
-
-const hrefSlug = (href: string): string => href.split('/').filter(Boolean).pop() ?? '';
-
-// `card_family` del CMS → id de familia del catálogo.
-const FAMILY_BY_CARD_FAMILY: Record<ActivityCardFamily, string> = {
-  kayak: 'kayak',
-  wake: 'wake',
-  tranquilo: 'paseos',
+// `family` en admin es texto libre; ids válidos = los del catálogo (kayak, wake,
+// paseos). `tranquilo` es alias legado (contrato CIBA-2519); cualquier otro valor
+// cae en `paseos` para que una card creada en admin nunca desaparezca en silencio.
+const FAMILY_IDS = new Set(ACTIVITY_FAMILIES.map((f) => f.id));
+const familyOf = (card: HomeActivity): string => {
+  const f = (card.family ?? '').trim().toLowerCase();
+  if (FAMILY_IDS.has(f)) return f;
+  return 'paseos';
 };
 
-const cmsBySlug = new Map((cmsIndex ?? []).map((e) => [e.slug, e]));
-const curatedSlugs = new Set(
-  ACTIVITY_FAMILIES.flatMap((f) => f.activities.map((a) => hrefSlug(a.href))),
-);
+interface CardVM {
+  activity: Activity;
+  ctaLabel?: string;
+  ctaMessage?: string;
+}
 
 const families = ACTIVITY_FAMILIES.map((family) => {
-  // 1) Curadas: el CMS sólo pilota la visibilidad (`card_visible: false` oculta
-  //    todas las tarjetas cuyo href apunte a esa actividad); el arte se mantiene.
-  const curated = family.activities.filter(
-    (a) => cmsBySlug.get(hrefSlug(a.href))?.cardVisible !== false,
-  );
+  const cards: CardVM[] =
+    home !== null
+      ? home.activities
+          .filter((c) => familyOf(c) === family.id)
+          .map((c) => ({
+            activity: toActivity(c),
+            ctaLabel: c.ctaLabel,
+            ctaMessage: c.ctaWhatsappMessage,
+          }))
+      : family.activities.map((a) => ({ activity: a }));
 
-  // 2) Actividades CMS sin tarjeta en el catálogo → tarjeta autogenerada en su
-  //    `card_family`, tras las curadas, ordenada por `card_order`. Href SIEMPRE
-  //    derivado del slug; el CTA WhatsApp lo construye ActivityTile (waLink).
-  const generated: Activity[] = (cmsIndex ?? [])
-    .filter(
-      (e) =>
-        !curatedSlugs.has(e.slug) &&
-        e.cardVisible &&
-        FAMILY_BY_CARD_FAMILY[e.cardFamily] === family.id,
-    )
-    .sort((a, b) => a.cardOrder - b.cardOrder || a.slug.localeCompare(b.slug))
-    .map((e) => ({
-      slug: e.slug,
-      name: e.title,
-      blurb: e.cardBlurb,
-      tag: e.tag ?? 'Actividad',
-      image: e.image ?? '/assets/images/hero-fallback.jpg',
-      imageAlt: e.imageAlt ?? `${e.title} en el pantano de la Baells`,
-      href: `/actividades/${e.slug}`,
-    }));
+  return { ...family, cards };
+}).filter((family) => family.cards.length > 0);
 
-  return { ...family, activities: [...curated, ...generated] };
-}).filter((family) => family.activities.length > 0);
-
-const totalActivities = families.reduce((n, f) => n + f.activities.length, 0);
+const totalActivities = families.reduce((n, f) => n + f.cards.length, 0);
 ---
 
+{totalActivities > 0 && (
 <section class="activities" id="actividades" aria-labelledby="activities-title">
   <!-- Line-art montañas + sol + puente Baells, esquina sup-derecha (punto 4).
        Inline + currentColor teal + opacidad baja como lavado de fondo. -->
@@ -149,23 +135,20 @@ const totalActivities = families.reduce((n, f) => n + f.activities.length, 0);
         </div>
 
         <ul
-          class:list={['family-grid', `family-grid--${family.activities.length}`]}
+          class:list={['family-grid', `family-grid--${family.cards.length}`]}
           role="list"
         >
-          {family.activities.map((activity, i) => {
-            const o = overrides.get(activity.slug);
-            return (
-              <li>
-                <ActivityTile
-                  activity={resolveActivity(activity, o)}
-                  whatsappUrl={whatsappUrl}
-                  featured={family.activities.length === 3 && i === 0}
-                  ctaLabel={o?.ctaLabel}
-                  ctaMessage={o?.ctaWhatsappMessage}
-                />
-              </li>
-            );
-          })}
+          {family.cards.map((card, i) => (
+            <li>
+              <ActivityTile
+                activity={card.activity}
+                whatsappUrl={whatsappUrl}
+                featured={family.cards.length === 3 && i === 0}
+                ctaLabel={card.ctaLabel}
+                ctaMessage={card.ctaMessage}
+              />
+            </li>
+          ))}
         </ul>
 
       </div>
@@ -183,6 +166,7 @@ const totalActivities = families.reduce((n, f) => n + f.activities.length, 0);
     />
   </div>
 </section>
+)}
 
 <style>
   /* ── Shell ─────────────────────────────────────────────────── */

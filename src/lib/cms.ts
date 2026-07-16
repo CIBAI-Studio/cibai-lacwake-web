@@ -1069,16 +1069,19 @@ export async function getActivitiesIndex(): Promise<ActivityIndexEntry[] | null>
 
 /**
  * Contenido editable de la home (key `home`, contrato CIBA-2343).
- * Devuelve las cards que el Board haya definido en el CMS como *overrides*
- * por-card sobre el catálogo semilla. Si la key no existe o no trae `activities`,
- * devuelve `{ activities: [] }` → la home cae al catálogo hardcoded sin regresión.
+ * `activities` es la lista AUTORITATIVA de tarjetas de la home (CIBA-2538):
+ * lo que el admin («Home (tarjetas)») guarda es exactamente lo que se pinta —
+ * una tarjeta borrada en admin desaparece de la web.
  *
- * Nota: sólo se parsea `activities` en A1; `dividers` es alcance de A2 (CIBA-2346).
+ * Devuelve `null` si el CMS está caído, la key no existe o no trae `activities`
+ * (array): la home cae al catálogo semilla sin regresión.
+ *
+ * Nota: `dividers` vive en la misma key pero lo lee getHomeDividers (CIBA-2346).
  */
-export async function getHomeContent(): Promise<HomeContent> {
+export async function getHomeContent(): Promise<HomeContent | null> {
   const c = await fetchSection('/api/content/home');
-  const rawList = Array.isArray(c?.activities) ? (c!.activities as Raw[]) : [];
-  const activities = rawList
+  if (!c || !Array.isArray(c.activities)) return null;
+  const activities = (c.activities as Raw[])
     .map((raw) => parseHomeActivity((raw ?? {}) as Raw))
     .filter((a): a is HomeActivity => a !== null);
   return { activities };
