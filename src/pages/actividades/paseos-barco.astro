@@ -1,0 +1,64 @@
+---
+import ActivityLayout from '../../layouts/ActivityLayout.astro';
+import { getActivityContent } from '../../lib/cms';
+
+// Página propia (CIBA-2499): antes la card «Paseos en barco» enlazaba a
+// /actividades/barcas («Barcas a remos»). La ficha admin es `actividad_paseos-barco`
+// (sembrada en CIBA-2379); el Board completa el cuerpo vía admin sin tocar código.
+const cms = await getActivityContent('paseos-barco');
+const title = cms?.title ?? 'Paseos en barco';
+const description = cms?.description ?? 'Déjate llevar. Un recorrido guiado por los rincones más bonitos del pantano.';
+const tag = cms?.tag ?? 'Guiado';
+const duration = cms?.duration ?? '1 – 2 horas';
+const minAge = cms?.minAge ?? '0';
+const price = cms?.price ?? 'Consultar';
+const included = cms?.included ?? ['Embarque desde instalaciones Lacwake', 'Guía local', 'Chalecos salvavidas', 'Comentario sobre el entorno natural'];
+const cmsBody = cms?.body ?? '';
+---
+
+<ActivityLayout
+  title={title}
+  description={description}
+  image={cms?.image ?? "/assets/redesign/paseos-barco.webp"}
+  imageAlt={cms?.imageAlt ?? "Paseo en barco por el pantano de la Baells con el viaducto de la C-16 al fondo"}
+  tag={tag}
+  duration={duration}
+  minAge={minAge}
+  price={price}
+  included={included}
+>
+
+  {cmsBody ? (
+    <div class="cms-body" set:html={cmsBody} />
+  ) : (
+  <Fragment>
+
+  <h2>Un recorrido guiado por la Baells</h2>
+  <p>
+    Súbete a bordo y déjate llevar. En nuestros paseos en barco un guía local te
+    descubre los rincones más bonitos del pantano: calas escondidas, paredes de
+    roca, el viaducto de la C-16 y la vida natural que rodea el embalse.
+  </p>
+
+  <h2>Para todos los públicos</h2>
+  <p>
+    Es el plan perfecto si quieres disfrutar del pantano sin remar ni pilotar:
+    apto para todas las edades, desde bebés hasta abuelos. Solo tienes que sentarte,
+    escuchar y disfrutar del paisaje.
+  </p>
+
+  <h2>¿Qué incluye?</h2>
+  <ul>
+    <li>Embarque desde las instalaciones de Lacwake.</li>
+    <li>Guía local que comenta el entorno natural y la historia del embalse.</li>
+    <li>Chalecos salvavidas para todos los pasajeros.</li>
+  </ul>
+
+  <p>
+    Reserva por WhatsApp y te confirmamos horarios de salida y disponibilidad.
+  </p>
+
+  </Fragment>
+  )}
+
+</ActivityLayout>

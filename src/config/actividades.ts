@@ -149,7 +149,7 @@ export const ACTIVITY_FAMILIES: ActivityFamily[] = [
         tag: 'A tu aire',
         image: `${IMG}/barca-motor.webp`,
         imageAlt: 'Barca a motor navegando por el pantano de la Baells rodeada de montañas',
-        href: '/actividades/barcas',
+        href: '/actividades/barca-motor',
       },
       {
         slug: 'hidropedal',
@@ -167,7 +167,7 @@ export const ACTIVITY_FAMILIES: ActivityFamily[] = [
         tag: 'Guiado',
         image: `${IMG}/paseos-barco.webp`,
         imageAlt: 'Paseo en barco por el pantano de la Baells con el viaducto de la C-16 al fondo',
-        href: '/actividades/barcas',
+        href: '/actividades/paseos-barco',
       },
     ],
   },

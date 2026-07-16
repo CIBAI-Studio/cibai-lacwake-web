@@ -1,0 +1,65 @@
+---
+import ActivityLayout from '../../layouts/ActivityLayout.astro';
+import { getActivityContent } from '../../lib/cms';
+
+// Página propia (CIBA-2499): antes la card «Barca a motor» enlazaba a
+// /actividades/barcas («Barcas a remos»). La ficha admin es `actividad_barca-motor`
+// (sembrada en CIBA-2379); el Board completa el cuerpo vía admin sin tocar código.
+const cms = await getActivityContent('barca-motor');
+const title = cms?.title ?? 'Barca a motor';
+const description = cms?.description ?? 'Toma el timón y explora el pantano a tu aire. Sin licencia, con briefing.';
+const tag = cms?.tag ?? 'A tu aire';
+const duration = cms?.duration ?? '1 – 3 horas';
+const minAge = cms?.minAge ?? '18';
+const price = cms?.price ?? 'Consultar';
+const included = cms?.included ?? ['Barca a motor', 'Chalecos salvavidas', 'Briefing de seguridad', 'Combustible incluido', 'Seguro de responsabilidad'];
+const cmsBody = cms?.body ?? '';
+---
+
+<ActivityLayout
+  title={title}
+  description={description}
+  image={cms?.image ?? "/assets/redesign/barca-motor.webp"}
+  imageAlt={cms?.imageAlt ?? "Barca a motor navegando por el pantano de la Baells rodeada de montañas"}
+  tag={tag}
+  duration={duration}
+  minAge={minAge}
+  price={price}
+  included={included}
+>
+
+  {cmsBody ? (
+    <div class="cms-body" set:html={cmsBody} />
+  ) : (
+  <Fragment>
+
+  <h2>El pantano, a tu aire</h2>
+  <p>
+    Con nuestras barcas a motor tú marcas el rumbo. No necesitas licencia náutica:
+    antes de zarpar te damos un briefing completo de manejo y seguridad, y en pocos
+    minutos estarás navegando con confianza por las aguas tranquilas del embalse
+    de la Baells.
+  </p>
+
+  <h2>¿Qué puedo descubrir?</h2>
+  <p>
+    La barca a motor te permite llegar más lejos que ninguna otra embarcación de
+    alquiler: calas escondidas, zonas de baño apartadas y las mejores vistas del
+    viaducto y las montañas del Berguedà, todo a tu propio ritmo.
+  </p>
+
+  <h2>Ideal para...</h2>
+  <ul>
+    <li><strong>Grupos y familias</strong> que quieren explorar el pantano sin esfuerzo.</li>
+    <li><strong>Parejas</strong> que buscan un plan diferente con total libertad.</li>
+    <li><strong>Curiosos del mundo náutico</strong> que quieren llevar el timón por primera vez.</li>
+  </ul>
+
+  <p>
+    Reserva por WhatsApp y te confirmamos disponibilidad, tarifas y horarios de salida.
+  </p>
+
+  </Fragment>
+  )}
+
+</ActivityLayout>
