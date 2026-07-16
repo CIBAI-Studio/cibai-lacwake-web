@@ -1,7 +1,12 @@
 ---
 import ActivityTile from '../ActivityTile.astro';
-import { ACTIVITY_FAMILIES, ACTIVITY_COUNT, type Activity } from '../../config/actividades';
-import { getHomeContent, type HomeActivity } from '../../lib/cms';
+import { ACTIVITY_FAMILIES, type Activity } from '../../config/actividades';
+import {
+  getActivitiesIndex,
+  getHomeContent,
+  type ActivityCardFamily,
+  type HomeActivity,
+} from '../../lib/cms';
 // Line-art recoloreable (currentColor) → inline para heredar el teal (punto 4)
 import montanasSolPuente from '../../../public/assets/redesign/decor/montanas-sol-puente.svg?raw';
 
@@ -32,6 +37,60 @@ function resolveActivity(base: Activity, o?: HomeActivity): Activity {
     href: pick(o.pageHref, base.href),
   };
 }
+
+// ── Merge del índice CMS sobre el catálogo semilla (CIBA-2522) ──────────────
+// Baseline = ACTIVITY_FAMILIES intacto (CMS caído o endpoint sin desplegar →
+// `cmsIndex === null` → home idéntica a hoy). La clave de merge es el basename
+// del `href` de cada tarjeta: las 3 tarjetas kayak-* casan todas con la
+// actividad CMS `kayak` (contrato CIBA-2519).
+const cmsIndex = await getActivitiesIndex();
+
+const hrefSlug = (href: string): string => href.split('/').filter(Boolean).pop() ?? '';
+
+// `card_family` del CMS → id de familia del catálogo.
+const FAMILY_BY_CARD_FAMILY: Record<ActivityCardFamily, string> = {
+  kayak: 'kayak',
+  wake: 'wake',
+  tranquilo: 'paseos',
+};
+
+const cmsBySlug = new Map((cmsIndex ?? []).map((e) => [e.slug, e]));
+const curatedSlugs = new Set(
+  ACTIVITY_FAMILIES.flatMap((f) => f.activities.map((a) => hrefSlug(a.href))),
+);
+
+const families = ACTIVITY_FAMILIES.map((family) => {
+  // 1) Curadas: el CMS sólo pilota la visibilidad (`card_visible: false` oculta
+  //    todas las tarjetas cuyo href apunte a esa actividad); el arte se mantiene.
+  const curated = family.activities.filter(
+    (a) => cmsBySlug.get(hrefSlug(a.href))?.cardVisible !== false,
+  );
+
+  // 2) Actividades CMS sin tarjeta en el catálogo → tarjeta autogenerada en su
+  //    `card_family`, tras las curadas, ordenada por `card_order`. Href SIEMPRE
+  //    derivado del slug; el CTA WhatsApp lo construye ActivityTile (waLink).
+  const generated: Activity[] = (cmsIndex ?? [])
+    .filter(
+      (e) =>
+        !curatedSlugs.has(e.slug) &&
+        e.cardVisible &&
+        FAMILY_BY_CARD_FAMILY[e.cardFamily] === family.id,
+    )
+    .sort((a, b) => a.cardOrder - b.cardOrder || a.slug.localeCompare(b.slug))
+    .map((e) => ({
+      slug: e.slug,
+      name: e.title,
+      blurb: e.cardBlurb,
+      tag: e.tag ?? 'Actividad',
+      image: e.image ?? '/assets/images/hero-fallback.jpg',
+      imageAlt: e.imageAlt ?? `${e.title} en el pantano de la Baells`,
+      href: `/actividades/${e.slug}`,
+    }));
+
+  return { ...family, activities: [...curated, ...generated] };
+}).filter((family) => family.activities.length > 0);
+
+const totalActivities = families.reduce((n, f) => n + f.activities.length, 0);
 ---
 
 <section class="activities" id="actividades" aria-labelledby="activities-title">
@@ -68,7 +127,7 @@ function resolveActivity(base: Activity, o?: HomeActivity): Activity {
     <header class="activities-head">
       <div class="activities-overline">Catálogo completo</div>
       <h2 class="activities-title" id="activities-title">
-        {ACTIVITY_COUNT} formas de vivir el agua
+        {totalActivities} formas de vivir el agua
       </h2>
       <p class="activities-lead">
         Del kayak tranquilo al wakeboard más intenso. Elige tu plan en el embalse
@@ -77,7 +136,7 @@ function resolveActivity(base: Activity, o?: HomeActivity): Activity {
     </header>
 
     <!-- Familias de actividad -->
-    {ACTIVITY_FAMILIES.map((family) => (
+    {families.map((family) => (
       <div class="family" aria-labelledby={`family-${family.id}`}>
 
         <div class="family-head">

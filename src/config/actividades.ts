@@ -140,7 +140,9 @@ export const ACTIVITY_FAMILIES: ActivityFamily[] = [
         tag: 'Relajado',
         image: `${IMG}/paddle-surf.webp`,
         imageAlt: 'Persona practicando paddle surf de pie sobre aguas tranquilas del pantano',
-        href: '/actividades/sup',
+        // Slug canónico `paddle-surf` (CIBA-2522): la ruta dinámica redirige
+        // el legacy `/actividades/sup` con 301 a esta URL.
+        href: '/actividades/paddle-surf',
       },
       {
         slug: 'barca-motor',
@@ -172,12 +174,6 @@ export const ACTIVITY_FAMILIES: ActivityFamily[] = [
     ],
   },
 ];
-
-/** Total de actividades del catálogo (para titulares). */
-export const ACTIVITY_COUNT = ACTIVITY_FAMILIES.reduce(
-  (n, f) => n + f.activities.length,
-  0,
-);
 
 /**
  * Construye un enlace de WhatsApp con mensaje prefijado por actividad,

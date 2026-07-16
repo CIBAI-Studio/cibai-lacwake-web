@@ -489,7 +489,8 @@ const FALLBACK_FOOTER: FooterContent = {
     { label: 'Wakesurf', href: '/actividades/wakesurf' },
     { label: 'Wakeskate', href: '/actividades/wakeskate' },
     { label: 'Esquí náutico', href: '/actividades/esqui-nautico' },
-    { label: 'Paddle Surf', href: '/actividades/sup' },
+    // Slug canónico paddle-surf (CIBA-2522); /actividades/sup queda como 301.
+    { label: 'Paddle Surf', href: '/actividades/paddle-surf' },
   ],
   navLegal: [
     { label: 'Aviso legal', href: '/aviso-legal' },
@@ -962,6 +963,16 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
       tag: 'Clásico',
       body: '',
     },
+    // ── Paddle Surf (CIBA-2522) — slug canónico `paddle-surf`; la tarjeta de la
+    //    home enlaza aquí vía la ruta dinámica. Semilla = blurb/tag del catálogo
+    //    para que la página exista aunque la fila CMS aún no esté migrada
+    //    (migración prod en ticket aparte) o la API caiga.
+    'paddle-surf': {
+      title: 'Paddle Surf',
+      description: 'De pie sobre la tabla, remando en calma. Equilibrio y paz sobre el agua.',
+      tag: 'Relajado',
+      body: '',
+    },
   };
 
   const fb = fallbacks[slug] ?? null;
@@ -987,6 +998,73 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
     image: nonEmpty(s('image')) ?? fb?.image,
     imageAlt: nonEmpty(s('imageAlt')) ?? nonEmpty(s('image_alt')) ?? fb?.imageAlt,
   };
+}
+
+// ─── Índice público de actividades (GET /api/activities, CIBA-2522) ──────────
+
+/** Familia de la home donde sale la tarjeta (contrato CIBA-2519). */
+export type ActivityCardFamily = 'kayak' | 'wake' | 'tranquilo';
+
+/**
+ * Entrada del índice público de actividades del cms-api. Los campos `card_*`
+ * pilotan la tarjeta de la home (visibilidad, familia, blurb y orden); el
+ * `href` NUNCA viene del CMS — siempre se deriva `/actividades/<slug>`.
+ */
+export interface ActivityIndexEntry {
+  slug: string;
+  title: string;
+  description: string;
+  tag?: string;
+  image?: string;
+  imageAlt?: string;
+  cardFamily: ActivityCardFamily;
+  cardVisible: boolean;
+  cardBlurb: string;
+  cardOrder: number;
+}
+
+/**
+ * Índice de todas las secciones `actividad_*` del CMS vía `GET /api/activities`
+ * (endpoint público del cms-api, contrato CIBA-2519). Respuesta:
+ * `[ { slug, content: {...}, updated_at } ]`.
+ *
+ * Devuelve `null` si el CMS está caído, la respuesta no es un array o el
+ * endpoint aún no está desplegado (404): la home cae al catálogo semilla sin
+ * regresión — cero dependencia dura del deploy del cms-api.
+ */
+export async function getActivitiesIndex(): Promise<ActivityIndexEntry[] | null> {
+  const raw = await fetchCMS<Raw[] | null>('/api/activities', null);
+  if (!Array.isArray(raw)) return null;
+
+  const entries: ActivityIndexEntry[] = [];
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue;
+    const slug = vStr(row.slug, '');
+    const content = row.content;
+    if (!slug || !content || typeof content !== 'object') continue;
+    const c = content as Raw;
+    const s = (f: string) => (typeof c[f] === 'string' ? (c[f] as string) : undefined);
+    const description = nonEmpty(s('description')) ?? '';
+    entries.push({
+      slug,
+      // Mismos alias que getActivityContent: el admin escribe `page_title`,
+      // el seed legacy `title`.
+      title: nonEmpty(s('page_title')) ?? nonEmpty(s('title')) ?? slug,
+      description,
+      tag: nonEmpty(s('tag')),
+      image: nonEmpty(s('image')),
+      imageAlt: nonEmpty(s('imageAlt')) ?? nonEmpty(s('image_alt')),
+      cardFamily: vEnum(c.card_family, ['kayak', 'wake', 'tranquilo'] as const, 'tranquilo'),
+      // Sólo `false` explícito oculta la tarjeta (default true, CIBA-2519).
+      cardVisible: c.card_visible !== false,
+      cardBlurb: nonEmpty(s('card_blurb')) ?? description,
+      cardOrder:
+        typeof c.card_order === 'number' && Number.isFinite(c.card_order)
+          ? c.card_order
+          : 999,
+    });
+  }
+  return entries;
 }
 
 /**

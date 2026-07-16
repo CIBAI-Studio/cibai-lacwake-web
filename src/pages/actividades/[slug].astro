@@ -1,114 +1,50 @@
 ---
 import ActivityLayout from '../../layouts/ActivityLayout.astro';
+import { getActivityContent } from '../../lib/cms';
 
-const VALID_SLUGS: Record<string, { title: string; description: string; tag: string; comingSoon: boolean }> = {
-  sup: {
-    title: 'Stand Up Paddle (SUP)',
-    description: 'Descubre el SUP en el pantano: equilibrio, fuerza y naturaleza en una sola actividad. Próximamente en Lacwake.',
-    tag: 'Próximamente',
-    comingSoon: true,
-  },
-  snorkel: {
-    title: 'Snorkel',
-    description: 'Explora el fondo del pantano con nuestra actividad de snorkel guiado. Próximamente en Lacwake.',
-    tag: 'Próximamente',
-    comingSoon: true,
-  },
+/**
+ * Ruta dinámica CMS-driven (CIBA-2522). Las 9 actividades con página estática
+ * propia (kayak, wakeboard…) se sirven por sus rutas file-based, que tienen
+ * prioridad sobre esta; aquí llegan sólo los slugs nuevos creados desde el
+ * admin (`actividad_<slug>`) y los desconocidos (→ 404 real).
+ */
+
+// Slugs legacy que cambiaron de canónico: redirect permanente.
+const LEGACY_REDIRECTS: Record<string, string> = {
+  sup: '/actividades/paddle-surf',
 };
 
 const { slug } = Astro.params;
-if (!slug || !(slug in VALID_SLUGS)) {
-  return Astro.redirect('/404', 302);
+
+if (slug && slug in LEGACY_REDIRECTS) {
+  return Astro.redirect(LEGACY_REDIRECTS[slug], 301);
 }
 
-const { title, description, tag, comingSoon } = VALID_SLUGS[slug];
+const cms = slug && /^[a-z0-9_-]+$/.test(slug) ? await getActivityContent(slug) : null;
+
+// Sin fila CMS y sin semilla → 404 real (ninguna ruta casa con /404 → error 404
+// estándar del sitio, mismo comportamiento que cualquier URL inexistente).
+if (!cms) {
+  return Astro.rewrite('/404');
+}
+
+const cmsBody = cms.body ?? '';
 ---
 
 <ActivityLayout
-  title={title}
-  description={description}
-  image="/assets/images/hero-fallback.jpg"
-  imageAlt={`${title} en el pantano de Lacwake`}
-  tag={tag}
+  title={cms.title}
+  description={cms.description}
+  image={cms.image ?? '/assets/images/hero-fallback.jpg'}
+  imageAlt={cms.imageAlt ?? `${cms.title} en el pantano de la Baells`}
+  tag={cms.tag}
+  duration={cms.duration}
+  minAge={cms.minAge}
+  price={cms.price}
+  included={cms.included ?? []}
 >
-  {comingSoon ? (
-    <div class="coming-soon">
-      <div class="coming-soon-icon" aria-hidden="true">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-      </div>
-      <h2>¡Próximamente!</h2>
-      <p>
-        Estamos preparando esta nueva actividad para ti. En breve podrás reservar
-        y disfrutar de <strong>{title}</strong> en el pantano de Lacwake.
-      </p>
-      <p>
-        Mientras tanto, te invitamos a explorar nuestras actividades disponibles:
-        <a href="/actividades/kayak">Kayak</a>,
-        <a href="/actividades/hidropedales">Hidropedales</a> y
-        <a href="/actividades/barcas">Barcas a remos</a>.
-      </p>
-      <a href="/#actividades" class="back-btn">← Ver todas las actividades</a>
-    </div>
+  {cmsBody ? (
+    <div class="cms-body" set:html={cmsBody} />
   ) : (
-    <p>{description}</p>
+    <p>{cms.description}</p>
   )}
 </ActivityLayout>
-
-<style>
-  .coming-soon {
-    text-align: center;
-    padding: 3rem 0;
-  }
-
-  .coming-soon-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    display: block;
-  }
-
-  .coming-soon h2 {
-    font-size: 2rem;
-    color: #0c0a09;
-    margin-bottom: 1rem;
-  }
-
-  .coming-soon p {
-    font-size: 1.0625rem;
-    line-height: 1.7;
-    color: #57534e;
-    max-width: 520px;
-    margin-inline: auto;
-    margin-bottom: 1.25rem;
-  }
-
-  .coming-soon a {
-    color: #0284c7;
-    font-weight: 600;
-    text-decoration: none;
-  }
-
-  .coming-soon a:hover {
-    text-decoration: underline;
-  }
-
-  .back-btn {
-    display: inline-flex;
-    align-items: center;
-    margin-top: 1rem;
-    padding: 0.75rem 1.5rem;
-    background: #e0f2fe;
-    color: #0284c7;
-    font-weight: 600;
-    border-radius: 9999px;
-    text-decoration: none !important;
-    transition: background 150ms ease;
-    min-height: 44px;
-  }
-
-  .back-btn:hover {
-    background: #bae6fd;
-  }
-</style>
