@@ -1110,11 +1110,13 @@ export async function getLegalContent(page: string): Promise<LegalContent | null
   const c = await fetchSection(`/api/content/${page}`);
   if (!c) return null;
   const s = (f: string) => c[f] as string | undefined;
+  // nonEmpty/nonEmptyHtml: un campo vacío ('' o el <p></p> de TipTap) debe
+  // dejar caer la página a su fallback hardcoded, no renderizar en blanco.
   return {
-    title: s('title') ?? '',
+    title: nonEmpty(s('title')) ?? '',
     // Admin LegalEditor saves HTML under the `html` field
-    body: s('body') ?? s('html') ?? '',
-    lastUpdated: s('last_updated') ?? s('lastUpdated') ?? '',
+    body: nonEmptyHtml(s('body')) ?? nonEmptyHtml(s('html')) ?? '',
+    lastUpdated: nonEmpty(s('last_updated')) ?? nonEmpty(s('lastUpdated')) ?? '',
   };
 }
 
