@@ -967,6 +967,14 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
   const fb = fallbacks[slug] ?? null;
   const c = await fetchSection(`/api/content/actividad_${slug}`);
   if (!c) return fb;
+  return parseActivityContent(c, fb);
+}
+
+/** Parsea la fila CMS `actividad_<slug>` aplicando el fallback campo a campo. */
+function parseActivityContent(
+  c: Record<string, unknown>,
+  fb: ActivityContent | null,
+): ActivityContent {
   const s = (f: string) => c[f] as string | undefined;
   return {
     // Campo vaciado desde el admin (`""`) = ausente: cae a la semilla/hardcode
@@ -987,6 +995,18 @@ export async function getActivityContent(slug: string): Promise<ActivityContent 
     image: nonEmpty(s('image')) ?? fb?.image,
     imageAlt: nonEmpty(s('imageAlt')) ?? nonEmpty(s('image_alt')) ?? fb?.imageAlt,
   };
+}
+
+/**
+ * Como `getActivityContent` pero SIN semilla hardcodeada: devuelve `null` si
+ * la fila `actividad_<slug>` no existe en el CMS. La ruta dinámica
+ * `/actividades/[slug]` la necesita para distinguir "no existe" (→ 404 real)
+ * de "existe sin cuerpo" (→ página con título + CTA) (CIBA-2526).
+ */
+export async function getCmsActivityContent(slug: string): Promise<ActivityContent | null> {
+  const c = await fetchSection(`/api/content/actividad_${slug}`);
+  if (!c) return null;
+  return parseActivityContent(c, null);
 }
 
 /**
@@ -1023,6 +1043,65 @@ function parseHomeActivity(raw: Raw): HomeActivity | null {
     ctaType: s('cta_type') ?? s('ctaType'),
     ctaLabel: s('cta_label') ?? s('ctaLabel'),
     ctaWhatsappMessage: s('cta_whatsapp_message') ?? s('ctaWhatsappMessage'),
+  };
+}
+
+/**
+ * Tarjeta de actividad de la home pilotada al 100% desde la key
+ * `home_activity_cards` del CMS (contrato CIBA-2526). A diferencia de
+ * `HomeActivity` (key `home`, overrides por-card sobre el catálogo semilla),
+ * aquí la lista ES la fuente: si hay cards, sustituyen al catálogo entero.
+ */
+export interface HomeActivityCard {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  imageAlt?: string;
+  tag?: string;
+  /** href ya resuelto: `activity` → `/actividades/<slug>`; `external` → `external_url`. */
+  href: string;
+}
+
+type RawHomeActivityCard = HomeActivityCard & { order: number };
+
+/**
+ * Cards de la home desde `home_activity_cards`, ordenadas por `order` y
+ * filtradas por `visible`. Lista vacía (key ausente, sin cards válidas o API
+ * caída) ⇒ la home cae al catálogo hardcoded sin cambio visual (retrocompat
+ * hasta que prod tenga datos, mismo espíritu nonEmpty de CIBA-2403).
+ */
+export async function getHomeActivityCards(): Promise<HomeActivityCard[]> {
+  const c = await fetchSection('/api/content/home_activity_cards');
+  const rawList = Array.isArray(c?.cards) ? (c!.cards as Raw[]) : [];
+  return rawList
+    .map((raw) => parseHomeActivityCard((raw ?? {}) as Raw))
+    .filter((card): card is RawHomeActivityCard => card !== null)
+    .sort((a, b) => a.order - b.order)
+    .map(({ order: _order, ...card }) => card);
+}
+
+/** Parsea una card del contrato `home_activity_cards`. Sin `id`+`title`+href resoluble ⇒ se descarta. */
+function parseHomeActivityCard(raw: Raw): RawHomeActivityCard | null {
+  const s = (f: string) => nonEmpty(typeof raw[f] === 'string' ? (raw[f] as string) : undefined);
+  // `visible` ausente cuenta como visible: sólo el false explícito oculta la card.
+  if (raw.visible === false) return null;
+  const id = s('id') ?? s('slug');
+  const title = s('title');
+  if (!id || !title) return null;
+  const hrefType = vEnum(raw.href_type, ['activity', 'external'] as const, 'activity');
+  const slug = s('slug') ?? id;
+  const href = hrefType === 'external' ? s('external_url') : `/actividades/${slug}`;
+  if (!href) return null;
+  return {
+    id,
+    title,
+    description: s('description') ?? '',
+    image: s('image') ?? '',
+    imageAlt: s('image_alt') ?? s('imageAlt'),
+    tag: s('tag'),
+    href,
+    order: vNum(raw.order, Number.MAX_SAFE_INTEGER, 0, Number.MAX_SAFE_INTEGER),
   };
 }
 

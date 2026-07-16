@@ -1,7 +1,12 @@
 ---
 import ActivityTile from '../ActivityTile.astro';
 import { ACTIVITY_FAMILIES, ACTIVITY_COUNT, type Activity } from '../../config/actividades';
-import { getHomeContent, type HomeActivity } from '../../lib/cms';
+import {
+  getHomeContent,
+  getHomeActivityCards,
+  type HomeActivity,
+  type HomeActivityCard,
+} from '../../lib/cms';
 // Line-art recoloreable (currentColor) → inline para heredar el teal (punto 4)
 import montanasSolPuente from '../../../public/assets/redesign/decor/montanas-sol-puente.svg?raw';
 
@@ -11,10 +16,31 @@ interface Props {
 
 const { whatsappUrl } = Astro.props;
 
+// Cards 100% CMS-driven desde `home_activity_cards` (CIBA-2526). Con cards,
+// sustituyen al catálogo entero; sin la key (o vacía/inválida) se cae al
+// catálogo semilla + overrides de la key `home` — cero cambio visual.
+const cmsCards = await getHomeActivityCards();
+const useCmsCards = cmsCards.length > 0;
+
 // Cards pilotables desde la key `home` del CMS (CIBA-2345). Sin CMS → mapa vacío
 // → se renderiza el catálogo semilla sin cambios (home idéntica).
-const home = await getHomeContent();
+const home = useCmsCards ? { activities: [] } : await getHomeContent();
 const overrides = new Map<string, HomeActivity>(home.activities.map((a) => [a.id, a]));
+
+const activityCount = useCmsCards ? cmsCards.length : ACTIVITY_COUNT;
+
+/** Adapta una card CMS al shape `Activity` que consume ActivityTile. */
+function cardToActivity(card: HomeActivityCard): Activity {
+  return {
+    slug: card.id,
+    name: card.title,
+    blurb: card.description,
+    tag: card.tag ?? '',
+    image: card.image,
+    imageAlt: card.imageAlt ?? card.title,
+    href: card.href,
+  };
+}
 
 /** Aplica el override CMS sobre la card del catálogo (sólo campos no vacíos). */
 const pick = (o: string | undefined, fb: string): string =>
@@ -68,7 +94,7 @@ function resolveActivity(base: Activity, o?: HomeActivity): Activity {
     <header class="activities-head">
       <div class="activities-overline">Catálogo completo</div>
       <h2 class="activities-title" id="activities-title">
-        {ACTIVITY_COUNT} formas de vivir el agua
+        {activityCount} formas de vivir el agua
       </h2>
       <p class="activities-lead">
         Del kayak tranquilo al wakeboard más intenso. Elige tu plan en el embalse
@@ -76,8 +102,19 @@ function resolveActivity(base: Activity, o?: HomeActivity): Activity {
       </p>
     </header>
 
-    <!-- Familias de actividad -->
-    {ACTIVITY_FAMILIES.map((family) => (
+    <!-- Cards CMS-driven (`home_activity_cards`): lista plana ordenada por `order` -->
+    {useCmsCards && (
+      <ul class="family-grid cards-grid" role="list">
+        {cmsCards.map((card) => (
+          <li>
+            <ActivityTile activity={cardToActivity(card)} whatsappUrl={whatsappUrl} />
+          </li>
+        ))}
+      </ul>
+    )}
+
+    <!-- Familias de actividad (catálogo semilla + overrides key `home`) -->
+    {!useCmsCards && ACTIVITY_FAMILIES.map((family) => (
       <div class="family" aria-labelledby={`family-${family.id}`}>
 
         <div class="family-head">
@@ -332,6 +369,13 @@ function resolveActivity(base: Activity, o?: HomeActivity): Activity {
   @media (min-width: 1024px) and (max-width: 1279px) {
     .family-grid--4 {
       grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* Lista plana CMS-driven: 1 → 2 → 3 columnas */
+  @media (min-width: 1024px) {
+    .cards-grid {
+      grid-template-columns: repeat(3, 1fr);
     }
   }
 

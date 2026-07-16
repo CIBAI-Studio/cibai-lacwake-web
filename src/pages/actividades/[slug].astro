@@ -1,114 +1,107 @@
 ---
 import ActivityLayout from '../../layouts/ActivityLayout.astro';
+import { getCmsActivityContent, getSiteConfig } from '../../lib/cms';
+import { waLink } from '../../config/actividades';
 
-const VALID_SLUGS: Record<string, { title: string; description: string; tag: string; comingSoon: boolean }> = {
-  sup: {
-    title: 'Stand Up Paddle (SUP)',
-    description: 'Descubre el SUP en el pantano: equilibrio, fuerza y naturaleza en una sola actividad. Próximamente en Lacwake.',
-    tag: 'Próximamente',
-    comingSoon: true,
-  },
-  snorkel: {
-    title: 'Snorkel',
-    description: 'Explora el fondo del pantano con nuestra actividad de snorkel guiado. Próximamente en Lacwake.',
-    tag: 'Próximamente',
-    comingSoon: true,
-  },
-};
-
+/**
+ * Ruta dinámica 100% CMS-driven (CIBA-2526, sustituye a la whitelist
+ * VALID_SLUGS): cualquier ficha `actividad_<slug>` creada en el admin gana
+ * página aquí sin tocar código. Las páginas estáticas (kayak.astro, etc.)
+ * ganan a esta ruta en Astro, así que sólo llegan slugs nuevos.
+ *
+ *  - Ficha inexistente en el CMS → 404 real (sin "próximamente" genérico).
+ *  - Ficha existente sin cuerpo (`nonEmptyHtml`) → título + CTA de reserva.
+ */
 const { slug } = Astro.params;
-if (!slug || !(slug in VALID_SLUGS)) {
-  return Astro.redirect('/404', 302);
-}
+const cms = slug && /^[a-z0-9-]+$/.test(slug) ? await getCmsActivityContent(slug) : null;
+if (!cms) return Astro.rewrite('/404');
 
-const { title, description, tag, comingSoon } = VALID_SLUGS[slug];
+const siteConfig = await getSiteConfig();
+const title = cms.title || slug!;
+const reserveUrl = waLink(siteConfig.whatsappUrl, title);
 ---
 
 <ActivityLayout
   title={title}
-  description={description}
-  image="/assets/images/hero-fallback.jpg"
-  imageAlt={`${title} en el pantano de Lacwake`}
-  tag={tag}
+  description={cms.description}
+  image={cms.image ?? '/assets/images/hero-fallback.jpg'}
+  imageAlt={cms.imageAlt ?? `${title} en el pantano de Lacwake`}
+  tag={cms.tag ?? 'Actividad'}
+  duration={cms.duration}
+  minAge={cms.minAge}
+  price={cms.price}
+  included={cms.included ?? []}
 >
-  {comingSoon ? (
-    <div class="coming-soon">
-      <div class="coming-soon-icon" aria-hidden="true">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/>
-          <polyline points="12 6 12 12 16 14"/>
-        </svg>
-      </div>
-      <h2>¡Próximamente!</h2>
-      <p>
-        Estamos preparando esta nueva actividad para ti. En breve podrás reservar
-        y disfrutar de <strong>{title}</strong> en el pantano de Lacwake.
-      </p>
-      <p>
-        Mientras tanto, te invitamos a explorar nuestras actividades disponibles:
-        <a href="/actividades/kayak">Kayak</a>,
-        <a href="/actividades/hidropedales">Hidropedales</a> y
-        <a href="/actividades/barcas">Barcas a remos</a>.
-      </p>
-      <a href="/#actividades" class="back-btn">← Ver todas las actividades</a>
-    </div>
+  {cms.body ? (
+    <div class="cms-body" set:html={cms.body} />
   ) : (
-    <p>{description}</p>
+    <div class="no-body">
+      <h2>{title} en Lacwake</h2>
+      <p>
+        Reserva tu plaza de <strong>{title}</strong> en el pantano de la Baells:
+        escríbenos por WhatsApp y te confirmamos al momento.
+      </p>
+      <a href={reserveUrl} class="no-body-cta" target="_blank" rel="noopener noreferrer">
+        Reservar {title}
+      </a>
+      <p class="no-body-back">
+        <a href="/#actividades">← Ver todas las actividades</a>
+      </p>
+    </div>
   )}
 </ActivityLayout>
 
 <style>
-  .coming-soon {
-    text-align: center;
-    padding: 3rem 0;
+  .no-body h2 {
+    font-family: var(--font-heading);
+    font-size: 1.75rem;
+    letter-spacing: -0.02em;
+    color: #1c1917;
+    margin: 0 0 1rem;
   }
 
-  .coming-soon-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    display: block;
-  }
-
-  .coming-soon h2 {
-    font-size: 2rem;
-    color: #0c0a09;
-    margin-bottom: 1rem;
-  }
-
-  .coming-soon p {
+  .no-body p {
     font-size: 1.0625rem;
     line-height: 1.7;
     color: #57534e;
-    max-width: 520px;
-    margin-inline: auto;
-    margin-bottom: 1.25rem;
+    max-width: 560px;
+    margin: 0 0 1.5rem;
   }
 
-  .coming-soon a {
-    color: #0284c7;
+  .no-body-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-sun-pastel);
+    color: #1e293b; /* texto oscuro sobre naranja pastel — AA (CIBA-2305) */
+    font-weight: 600;
+    border-radius: 9999px;
+    text-decoration: none;
+    min-height: 44px;
+    transition: background 160ms ease;
+  }
+
+  .no-body-cta:hover {
+    background: var(--color-sun-pastel-hover);
+  }
+
+  .no-body-back {
+    margin-top: 1.5rem;
+  }
+
+  .no-body-back a {
+    color: var(--color-teal-ink);
     font-weight: 600;
     text-decoration: none;
   }
 
-  .coming-soon a:hover {
+  .no-body-back a:hover {
     text-decoration: underline;
   }
 
-  .back-btn {
-    display: inline-flex;
-    align-items: center;
-    margin-top: 1rem;
-    padding: 0.75rem 1.5rem;
-    background: #e0f2fe;
-    color: #0284c7;
-    font-weight: 600;
-    border-radius: 9999px;
-    text-decoration: none !important;
-    transition: background 150ms ease;
-    min-height: 44px;
-  }
-
-  .back-btn:hover {
-    background: #bae6fd;
+  @media (prefers-reduced-motion: reduce) {
+    .no-body-cta {
+      transition: none;
+    }
   }
 </style>

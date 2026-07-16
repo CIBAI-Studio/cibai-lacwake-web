@@ -43,7 +43,7 @@ const external = activity.href.startsWith('http');
 
   <!-- Contenido -->
   <div class="card-body">
-    <span class="card-badge">{activity.tag}</span>
+    {activity.tag && <span class="card-badge">{activity.tag}</span>}
 
     <h3 class="card-title">
       <a
