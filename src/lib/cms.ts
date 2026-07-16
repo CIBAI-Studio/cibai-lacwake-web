@@ -1095,11 +1095,12 @@ export async function getHomeDividers(): Promise<HomeDividers> {
 
 /**
  * CSS personalizado editable desde el admin (CIBA-2512, key `site_custom_css`,
- * campo `css`). Se inyecta como último <style> del <head> en BaseLayout para
- * máxima prioridad en cascada. Key ausente, API caída o campo vacío ⇒ `''`
- * (BaseLayout no renderiza la etiqueta). Defensa en profundidad: aunque el
+ * campo `css`). El middleware (src/middleware.ts) lo inyecta como último
+ * <style> del <head>, tras los <link> bundleados de Astro, para máxima
+ * prioridad en cascada. Key ausente, API caída o campo vacío ⇒ `''`
+ * (el middleware no inyecta la etiqueta). Defensa en profundidad: aunque el
  * API ya rechaza `</style`, aquí se elimina cualquier secuencia que pudiera
- * cerrar la etiqueta antes de inyectar con set:html.
+ * cerrar la etiqueta antes de inyectarlo en el HTML.
  */
 export async function getCustomCss(): Promise<string> {
   const c = await fetchSection('/api/content/site_custom_css');
