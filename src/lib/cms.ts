@@ -1230,3 +1230,25 @@ export async function getSeo(pageKey: string): Promise<SeoMeta> {
     canonical: s('canonical'),
   };
 }
+
+/**
+ * JS personalizado editable desde el admin (CIBA-2562/CIBA-2563, keys
+ * `site_custom_js_head` y `site_custom_js_body`, campo `js`). Snippets de
+ * seguimiento (gtag y similares) que el middleware inyecta VERBATIM ante
+ * `</head>` y `</body>` respectivamente: el valor ya incluye sus etiquetas
+ * <script> y NO se escapa ni se envuelve — es inyección deliberada del
+ * propietario del sitio (contrato CTO en CIBA-2562; el único control es la
+ * sesión admin autenticada; un `</script>` interno se inyecta tal cual,
+ * riesgo documentado y asumido). Key ausente, API caída o campo vacío ⇒ `''`
+ * y el middleware no inyecta nada (HTML idéntico al actual). Cache: la de
+ * fetchSection, mismo TTL que el CSS personalizado.
+ */
+export async function getCustomJs(): Promise<{ head: string; body: string }> {
+  const [h, b] = await Promise.all([
+    fetchSection('/api/content/site_custom_js_head'),
+    fetchSection('/api/content/site_custom_js_body'),
+  ]);
+  const pick = (c: Record<string, unknown> | null): string =>
+    nonEmpty(c && typeof c['js'] === 'string' ? (c['js'] as string) : undefined) ?? '';
+  return { head: pick(h), body: pick(b) };
+}
