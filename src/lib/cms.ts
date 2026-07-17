@@ -84,6 +84,10 @@ export interface HeroContent {
   subtitle: string;
   videoUrl: string;
   fallbackImage: string;
+  /** Variante vertical 9:16 para móvil (CIBA-2558/2559). Ausente ⇒ se usa el 16:9. */
+  videoUrlPortrait?: string;
+  /** Imagen 9:16 para móvil. Fallback POR CAMPO: ausente ⇒ `fallbackImage`. */
+  fallbackImagePortrait?: string;
   ctaLabel: string;
   ctaUrl: string;
   ctaSecondaryLabel: string;
@@ -115,6 +119,10 @@ export interface HeroSlideBackground {
   fallbackImage: string;
   /** Sólo cuando type=image */
   imageUrl: string;
+  /** Vídeo 9:16 para viewport móvil (<768px). Ausente ⇒ `videoUrl` (CIBA-2559). */
+  videoUrlPortrait?: string;
+  /** Imagen/póster 9:16 para viewport móvil. Ausente ⇒ `fallbackImage`. */
+  fallbackImagePortrait?: string;
 }
 
 /**
@@ -566,6 +574,11 @@ export async function getHeroContent(): Promise<HeroContent> {
     // Admin field is `video_url`; accept legacy `video_src` / camelCase as well
     videoUrl: s('video_url') ?? s('video_src') ?? s('videoUrl') ?? F.videoUrl,
     fallbackImage: s('fallback_image') ?? s('fallbackImage') ?? F.fallbackImage,
+    // Variantes 9:16 (CIBA-2558): opcionales y con semántica nonEmpty — un ""
+    // guardado desde el admin NO cuenta como valor (patrón CIBA-2403).
+    videoUrlPortrait: nonEmpty(s('video_url_portrait')) ?? nonEmpty(s('videoUrlPortrait')),
+    fallbackImagePortrait:
+      nonEmpty(s('fallback_image_portrait')) ?? nonEmpty(s('fallbackImagePortrait')),
     // Admin fields are `cta_text` / `cta_href`; accept verbose `cta_primary_*` variants too
     ctaLabel: s('cta_text') ?? s('cta_primary_text') ?? s('ctaLabel') ?? F.ctaLabel,
     ctaUrl: s('cta_href') ?? s('cta_primary_href') ?? s('ctaUrl') ?? F.ctaUrl,
@@ -748,6 +761,12 @@ function parseHeroSlide(raw: Raw, index: number): HeroSlide {
       videoUrl,
       fallbackImage: vStr(bg.fallback_image ?? bg.fallbackImage, ''),
       imageUrl,
+      // Variantes 9:16 por-slide (defensivo: el contrato CIBA-2558 las define
+      // top-level, pero si el backend las espeja en el slide se respetan).
+      videoUrlPortrait:
+        vStr(bg.video_url_portrait ?? bg.videoUrlPortrait, '') || undefined,
+      fallbackImagePortrait:
+        vStr(bg.fallback_image_portrait ?? bg.fallbackImagePortrait, '') || undefined,
     },
     ...flat,
     typography: parseHeroTypography((raw.typography ?? {}) as Raw),
@@ -804,6 +823,8 @@ function legacySlideFromHero(h: HeroContent): HeroSlide {
       videoUrl: h.videoUrl,
       fallbackImage: h.fallbackImage,
       imageUrl: type === 'image' ? h.fallbackImage : '',
+      videoUrlPortrait: h.videoUrlPortrait,
+      fallbackImagePortrait: h.fallbackImagePortrait,
     },
     ...flat,
     typography: h.typography,
@@ -843,6 +864,14 @@ export async function getHeroSlides(): Promise<HeroCarousel> {
       .slice(0, HERO_MAX_SLIDES);
 
     if (slides.length > 0) {
+      // Las variantes 9:16 del contrato CIBA-2558 son top-level en `content/hero`
+      // (espejo del primer slide, igual que la capa legacy de CIBA-2453). Si el
+      // primer slide no trae variante propia, hereda la top-level.
+      const t = (f: string) => nonEmpty(content?.[f] as string | undefined);
+      const first = slides[0].background;
+      first.videoUrlPortrait ??= t('video_url_portrait') ?? t('videoUrlPortrait');
+      first.fallbackImagePortrait ??=
+        t('fallback_image_portrait') ?? t('fallbackImagePortrait');
       return { slides, rotation: parseHeroRotation((content?.rotation ?? {}) as Raw) };
     }
   }

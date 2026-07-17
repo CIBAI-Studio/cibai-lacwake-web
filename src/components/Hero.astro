@@ -81,6 +81,12 @@ const firstTitleFont = resolveHeroFont(slides[0]?.typography.title.font ?? 'anto
     object-position: center;
   }
 
+  /* La variante 9:16 móvil envuelve la img en <picture> (CIBA-2559);
+     display:contents mantiene el sizing 100% contra .hero-slide-media. */
+  .hero-slide-media picture {
+    display: contents;
+  }
+
   /* La imagen fallback del vídeo la pinta el atributo `poster` del <video>
      (ver HeroCarousel), no un <img> superpuesto — evita tapar el vídeo. */
 

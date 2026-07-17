@@ -43,6 +43,9 @@ interface Props {
 /** Default de permanencia de un bloque intermedio sin `duration` (contrato §3). */
 const HERO_BLOCK_DEFAULT_MS = 6000;
 
+/** Breakpoint móvil del contrato CIBA-2559: <768px usa la media 9:16 si existe. */
+const PORTRAIT_MEDIA_QUERY = '(max-width: 767px)';
+
 // ─── Variantes de movimiento (conserva la firma del 'giro' aprobado) ──────────
 const childVariants: Variants = {
   hidden: { opacity: 0, y: 32 },
@@ -175,6 +178,45 @@ export default function HeroCarousel({ slides, rotation }: Props) {
 
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const firstRenderRef = useRef(true);
+
+  // ─── Media 9:16 móvil (CIBA-2559) ───────────────────────────────────────────
+  // `<source media>` no existe dentro de <video>: la variante se decide en
+  // cliente con matchMedia ANTES de asignar src, para no descargar dos vídeos.
+  // Sin variante portrait en el CMS este estado ni se activa y el markup SSR
+  // es idéntico al actual (desktop y móvil sin cambios de red).
+  const hasPortraitVideo = useMemo(
+    () => slides.some((s) => s.background.type === 'video' && s.background.videoUrlPortrait),
+    [slides],
+  );
+  // null = aún sin resolver (SSR / pre-hidratación).
+  const [portraitViewport, setPortraitViewport] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!hasPortraitVideo) return;
+    const mq = window.matchMedia(PORTRAIT_MEDIA_QUERY);
+    const update = () => setPortraitViewport(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, [hasPortraitVideo]);
+
+  // Al resolverse (o cambiar) la variante, recargar sólo los vídeos con
+  // variante portrait y reanudar el activo. El guard evita recargas al
+  // navegar entre slides (`active` está en deps sólo para reanudar el correcto).
+  const appliedPortraitRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (portraitViewport === null || appliedPortraitRef.current === portraitViewport) return;
+    appliedPortraitRef.current = portraitViewport;
+    videoRefs.current.forEach((video, i) => {
+      const bg = slides[i]?.background;
+      if (!video || !bg || bg.type !== 'video' || !bg.videoUrlPortrait) return;
+      video.load();
+      if (i === active) {
+        video.muted = true;
+        const p = video.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      }
+    });
+  }, [portraitViewport, slides, active]);
 
   const activeSlide = slides[active] ?? slides[0];
   const activeIsVideo = activeSlide?.background.type === 'video';
@@ -464,6 +506,36 @@ export default function HeroCarousel({ slides, rotation }: Props) {
       <div className="hero-media" aria-hidden="true">
         {slides.map((slide, i) => {
           const isActive = i === active;
+          const bg = slide.background;
+          // Variante 9:16 (CIBA-2559), fallback POR CAMPO independiente:
+          // vídeo portrait ausente → vídeo 16:9; imagen portrait ausente → 16:9.
+          const slideHasPortraitVideo = bg.type === 'video' && Boolean(bg.videoUrlPortrait);
+          // Con variante portrait el src se decide en cliente: hasta resolver el
+          // viewport NO se emite <source> (evita la doble descarga; el src SSR
+          // sólo existe cuando no hay variante y por tanto no hay elección).
+          const videoSrc = slideHasPortraitVideo
+            ? portraitViewport === null
+              ? undefined
+              : portraitViewport
+                ? bg.videoUrlPortrait
+                : bg.videoUrl
+            : bg.videoUrl;
+          const poster =
+            (portraitViewport ? bg.fallbackImagePortrait : undefined) ||
+            bg.fallbackImage ||
+            undefined;
+          const image = (
+            <img
+              className="hero-slide-img"
+              src={bg.imageUrl || bg.fallbackImage}
+              alt=""
+              aria-hidden="true"
+              width={1920}
+              height={1080}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+            />
+          );
           return (
             <div
               key={slide.id}
@@ -471,7 +543,7 @@ export default function HeroCarousel({ slides, rotation }: Props) {
               data-active={isActive}
               style={{ transitionDuration: `${reduced ? 0 : rotation.transitionMs}ms` }}
             >
-              {slide.background.type === 'video' ? (
+              {bg.type === 'video' ? (
                 // El `poster` ES la imagen fallback: el navegador la muestra hasta
                 // que el vídeo pinta su primer frame, y la conserva si el vídeo
                 // falla al cargar. NO añadir un <img> superpuesto encima del
@@ -485,23 +557,27 @@ export default function HeroCarousel({ slides, rotation }: Props) {
                   muted
                   loop={slide.video.loop}
                   playsInline
-                  poster={slide.background.fallbackImage || undefined}
-                  preload={i === 0 ? slide.video.preload : 'none'}
+                  poster={poster}
+                  preload={
+                    slideHasPortraitVideo && portraitViewport === null
+                      ? 'none'
+                      : i === 0
+                        ? slide.video.preload
+                        : 'none'
+                  }
                   autoPlay={i === 0}
                 >
-                  <source src={slide.background.videoUrl} type="video/mp4" />
+                  {videoSrc && <source src={videoSrc} type="video/mp4" />}
                 </video>
+              ) : bg.fallbackImagePortrait ? (
+                // Para imagen sí vale <picture>: el navegador elige la fuente
+                // 9:16 en <768px sin JS ni doble descarga.
+                <picture>
+                  <source media={PORTRAIT_MEDIA_QUERY} srcSet={bg.fallbackImagePortrait} />
+                  {image}
+                </picture>
               ) : (
-                <img
-                  className="hero-slide-img"
-                  src={slide.background.imageUrl || slide.background.fallbackImage}
-                  alt=""
-                  aria-hidden="true"
-                  width={1920}
-                  height={1080}
-                  loading={i === 0 ? 'eager' : 'lazy'}
-                  decoding="async"
-                />
+                image
               )}
             </div>
           );
