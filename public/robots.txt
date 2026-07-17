@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://lacwake.es/sitemap-index.xml
+Sitemap: https://lacwake.es/sitemap.xml
