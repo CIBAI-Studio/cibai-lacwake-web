@@ -14,6 +14,8 @@ interface Props {
   minAge?: string;
   price?: string;
   included?: string[];
+  /** Slug canónico de la actividad → pageKey SEO `actividad_<slug>` (CIBA-2561). */
+  slug?: string;
 }
 
 const {
@@ -26,10 +28,11 @@ const {
   minAge,
   price,
   included = [],
+  slug,
 } = Astro.props;
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={title} description={description} seoKey={slug ? `actividad_${slug}` : undefined}>
   <!-- Activity Hero -->
   <div class="activity-hero" style={`padding-top: 5rem;`}>
     <div class="activity-hero-media">

@@ -2,23 +2,37 @@
 import '../styles/global.css';
 import NavIsland from '../components/NavIsland.astro';
 import Footer from '../components/Footer.astro';
+import { getSeo } from '../lib/cms';
 
 interface Props {
   title: string;
   description?: string;
   image?: string;
   noIndex?: boolean;
+  /** pageKey del contrato `site_seo` (CIBA-2561); sin él, no hay overrides de admin. */
+  seoKey?: string;
 }
 
 const {
   title,
-  description = 'Lacwake — Actividades acuáticas en el pantano. Kayak, hidropedales y barcas para toda la familia.',
+  description: fallbackDescription = 'Lacwake — Actividades acuáticas en el pantano. Kayak, hidropedales y barcas para toda la familia.',
   image = '/assets/images/og-default.jpg',
   noIndex = false,
+  seoKey,
 } = Astro.props;
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-const fullTitle = title === 'Lacwake' ? title : `${title} | Lacwake`;
+const seo = seoKey ? await getSeo(seoKey) : {};
+
+// Overrides campo a campo: cada meta cae al valor actual de la página si el
+// admin no lo ha rellenado, de modo que sin overrides el head no cambia.
+// `seo.title` del admin se usa tal cual (título completo, sin sufijo).
+const fullTitle = seo.title ?? (title === 'Lacwake' ? title : `${title} | Lacwake`);
+const description = seo.description ?? fallbackDescription;
+// `new URL(x, base)` absolutiza rutas relativas y respeta URLs ya absolutas.
+const canonicalURL = new URL(seo.canonical ?? Astro.url.pathname, Astro.site).href;
+const ogTitle = seo.ogTitle ?? fullTitle;
+const ogDescription = seo.ogDescription ?? description;
+const ogImage = new URL(seo.ogImage ?? image, Astro.site).href;
 ---
 
 <!doctype html>
@@ -30,6 +44,7 @@ const fullTitle = title === 'Lacwake' ? title : `${title} | Lacwake`;
 
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    {seo.keywords && <meta name="keywords" content={seo.keywords} />}
     <link rel="canonical" href={canonicalURL} />
 
     {noIndex && <meta name="robots" content="noindex, nofollow" />}
@@ -37,17 +52,17 @@ const fullTitle = title === 'Lacwake' ? title : `${title} | Lacwake`;
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL} />
-    <meta property="og:title" content={fullTitle} />
-    <meta property="og:description" content={description} />
-    <meta property="og:image" content={new URL(image, Astro.site)} />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={ogDescription} />
+    <meta property="og:image" content={ogImage} />
     <meta property="og:locale" content="es_ES" />
     <meta property="og:site_name" content="Lacwake" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={fullTitle} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={new URL(image, Astro.site)} />
+    <meta name="twitter:title" content={ogTitle} />
+    <meta name="twitter:description" content={ogDescription} />
+    <meta name="twitter:image" content={ogImage} />
 
     <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

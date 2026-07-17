@@ -1192,3 +1192,41 @@ export async function getCustomCss(): Promise<string> {
   if (!css) return '';
   return css.replace(/<\/style/gi, '');
 }
+
+/**
+ * Metadatos SEO de una página, editables desde el admin (CIBA-2561, key única
+ * `site_seo`, contrato CIBA-2560: `{ pages: { <pageKey>: {…} } }`).
+ * Cada campo es un override opcional: `undefined` ⇒ la página conserva su
+ * valor actual (semántica nonEmpty, CIBA-2403: `""` no pisa el fallback).
+ */
+export interface SeoMeta {
+  title?: string;
+  description?: string;
+  keywords?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  canonical?: string;
+}
+
+/**
+ * Overrides SEO para una pageKey del contrato (`home`, `actividades`,
+ * `actividad_<slug>`, `aviso_legal`, `privacidad`, `cookies`, `condiciones`).
+ * Key ausente, API caída o página sin entrada ⇒ objeto vacío (head intacto).
+ */
+export async function getSeo(pageKey: string): Promise<SeoMeta> {
+  const c = await fetchSection('/api/content/site_seo');
+  const pages = c && typeof c['pages'] === 'object' && c['pages'] !== null ? (c['pages'] as Raw) : null;
+  const page = pages && typeof pages[pageKey] === 'object' && pages[pageKey] !== null ? (pages[pageKey] as Raw) : null;
+  if (!page) return {};
+  const s = (f: string) => nonEmpty(typeof page[f] === 'string' ? (page[f] as string) : undefined);
+  return {
+    title: s('title'),
+    description: s('description'),
+    keywords: s('keywords'),
+    ogTitle: s('og_title'),
+    ogDescription: s('og_description'),
+    ogImage: s('og_image'),
+    canonical: s('canonical'),
+  };
+}

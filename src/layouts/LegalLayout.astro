@@ -5,12 +5,14 @@ interface Props {
   title: string;
   description?: string;
   lastUpdated?: string;
+  /** pageKey del contrato `site_seo` (CIBA-2561): aviso_legal, privacidad, cookies, condiciones. */
+  seoKey?: string;
 }
 
-const { title, description, lastUpdated } = Astro.props;
+const { title, description, lastUpdated, seoKey } = Astro.props;
 ---
 
-<BaseLayout title={title} description={description} noIndex>
+<BaseLayout title={title} description={description} seoKey={seoKey} noIndex>
   <div class="container-site section" style="padding-top: 7rem;">
     <div class="prose mx-auto">
       <h1 style="font-size: clamp(1.75rem, 4vw, 2.5rem); margin-bottom: 0.5rem;">{title}</h1>
