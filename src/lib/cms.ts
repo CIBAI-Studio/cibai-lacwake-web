@@ -1205,6 +1205,47 @@ export async function getHomeDividers(): Promise<HomeDividers> {
   };
 }
 
+// ─── Decoración de la home (contrato `home.decor`, CIBA-2579/2581) ────────────
+
+/**
+ * Slots de decoración editables desde admin (key `home`, objeto `decor`).
+ * Cada slot es una URL opcional; vacío/ausente ⇒ el asset actual del repo
+ * (semántica nonEmpty, CIBA-2403: `""` no pisa el fallback). Los nombres de
+ * slot son los del contrato CTO (CIBA-2580); mapeo a usos actuales en
+ * index.astro / ActivitiesSection.astro.
+ *
+ * Independiente de `home.dividers` (CIBA-2385): `activitiesWaveDivider` es la
+ * onda decorativa INTERNA al final de la sección Actividades
+ * (`/assets/redesign/decor/wave-divider.svg`), no los SectionDivider entre
+ * secciones (`/assets/dividers/*`), que siguen gobernados por getHomeDividers.
+ */
+export interface HomeDecor {
+  /** Ramas botánicas de la sección Features/Why (ambos márgenes). */
+  featuresBranch?: string;
+  /** Ramas botánicas de los márgenes de la sección Actividades. */
+  activitiesLeaf?: string;
+  /** Textura de agua de los laterales del CTA aguamarina. */
+  ctaWaves?: string;
+  /** Decoración de las esquinas del CTA (mancha/rama). */
+  ctaBlob?: string;
+  /** Divisor de olas al pie de la sección Actividades. */
+  activitiesWaveDivider?: string;
+}
+
+export async function getHomeDecor(): Promise<HomeDecor> {
+  const c = await fetchSection('/api/content/home');
+  const raw = (c?.decor ?? null) as Raw | null;
+  if (!raw || typeof raw !== 'object') return {};
+  const s = (f: string) => nonEmpty(typeof raw[f] === 'string' ? (raw[f] as string) : undefined);
+  return {
+    featuresBranch: s('features_branch'),
+    activitiesLeaf: s('activities_leaf'),
+    ctaWaves: s('cta_waves'),
+    ctaBlob: s('cta_blob'),
+    activitiesWaveDivider: s('activities_wave_divider'),
+  };
+}
+
 /**
  * CSS personalizado editable desde el admin (CIBA-2512, key `site_custom_css`,
  * campo `css`). El middleware (src/middleware.ts) lo inyecta como último
