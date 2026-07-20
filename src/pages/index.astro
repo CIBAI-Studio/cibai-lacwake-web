@@ -3,16 +3,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import ActivitiesSection from '../components/sections/ActivitiesSection.astro';
 import SectionDivider from '../components/SectionDivider.astro';
-import { getHeroSlides, getWhyContent, getCtaContent, getSiteConfig, getHomeDividers } from '../lib/cms';
+import { getHeroSlides, getWhyContent, getCtaContent, getSiteConfig, getHomeDividers, getHomeDecor } from '../lib/cms';
 import type { DividerBoundary } from '../lib/cms';
 
-const [heroCarousel, why, cta, siteConfig, dividers] = await Promise.all([
+const [heroCarousel, why, cta, siteConfig, dividers, decor] = await Promise.all([
   getHeroSlides(),
   getWhyContent(),
   getCtaContent(),
   getSiteConfig(),
   getHomeDividers(),
+  getHomeDecor(),
 ]);
+
+/* Decoración editable desde admin (contrato `home.decor`, CIBA-2581).
+   Un slot cubre las N instancias de su decoración en la sección (la instancia
+   espejada conserva su scaleX(-1) vía CSS); slot vacío ⇒ assets actuales. */
+const featuresBranchLeft = decor.featuresBranch ?? '/assets/redesign/decor/botanica-teal.png';
+const featuresBranchRight = decor.featuresBranch ?? '/assets/redesign/decor/botanica-margen.png';
+const ctaWaves = decor.ctaWaves ?? '/assets/redesign/decor/agua-lateral.png';
+const ctaBlobLeft = decor.ctaBlob ?? '/assets/redesign/decor/botanica-teal.png';
+const ctaBlobRight = decor.ctaBlob ?? '/assets/redesign/decor/botanica-margen.png';
 
 /* Banda de transición por costura: `bg` = color de la sección SALIENTE (arriba),
    `color` = relleno de la forma = color de la sección ENTRANTE (abajo). Así la
@@ -111,9 +121,9 @@ const FEATURE_ICONS = [
       loading="lazy"
       decoding="async"
     />
-    <!-- Rama botánica teal nítida, margen izquierdo (punto 3) -->
+    <!-- Rama botánica nítida, margen izquierdo (punto 3; slot CMS features_branch) -->
     <img
-      src="/assets/redesign/decor/botanica-teal.png"
+      src={featuresBranchLeft}
       alt=""
       aria-hidden="true"
       class="features-decor features-decor--left"
@@ -122,9 +132,9 @@ const FEATURE_ICONS = [
       loading="lazy"
       decoding="async"
     />
-    <!-- Rama olivo+bayas nítida, margen derecho (punto 3) -->
+    <!-- Rama olivo+bayas nítida, margen derecho (punto 3; slot CMS features_branch) -->
     <img
-      src="/assets/redesign/decor/botanica-margen.png"
+      src={featuresBranchRight}
       alt=""
       aria-hidden="true"
       class="features-decor features-decor--right"
@@ -195,9 +205,9 @@ const FEATURE_ICONS = [
 
   <!-- Franja de AGUA aguamarina antes del footer (punto 5) -->
   <section class="cta-banner" aria-labelledby="cta-title">
-    <!-- Textura de agua/olas acuarela (decorativa, no bajo el texto) -->
+    <!-- Textura de agua/olas acuarela (decorativa, no bajo el texto; slot CMS cta_waves) -->
     <img
-      src="/assets/redesign/decor/agua-lateral.png"
+      src={ctaWaves}
       alt=""
       aria-hidden="true"
       class="cta-water cta-water--left"
@@ -207,7 +217,7 @@ const FEATURE_ICONS = [
       decoding="async"
     />
     <img
-      src="/assets/redesign/decor/agua-lateral.png"
+      src={ctaWaves}
       alt=""
       aria-hidden="true"
       class="cta-water cta-water--right"
@@ -216,9 +226,9 @@ const FEATURE_ICONS = [
       loading="lazy"
       decoding="async"
     />
-    <!-- Ramas botánicas en las esquinas (como la referencia) -->
+    <!-- Decoración de esquinas (como la referencia; slot CMS cta_blob) -->
     <img
-      src="/assets/redesign/decor/botanica-teal.png"
+      src={ctaBlobLeft}
       alt=""
       aria-hidden="true"
       class="cta-leaf cta-leaf--left"
@@ -228,7 +238,7 @@ const FEATURE_ICONS = [
       decoding="async"
     />
     <img
-      src="/assets/redesign/decor/botanica-margen.png"
+      src={ctaBlobRight}
       alt=""
       aria-hidden="true"
       class="cta-leaf cta-leaf--right"

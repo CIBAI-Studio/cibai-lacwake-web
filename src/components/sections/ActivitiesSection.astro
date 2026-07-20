@@ -1,7 +1,7 @@
 ---
 import ActivityTile from '../ActivityTile.astro';
 import { ACTIVITY_FAMILIES, type Activity } from '../../config/actividades';
-import { getHomeContent, type HomeActivity } from '../../lib/cms';
+import { getHomeContent, getHomeDecor, type HomeActivity } from '../../lib/cms';
 // Line-art recoloreable (currentColor) → inline para heredar el teal (punto 4)
 import montanasSolPuente from '../../../public/assets/redesign/decor/montanas-sol-puente.svg?raw';
 
@@ -18,6 +18,14 @@ const { whatsappUrl } = Astro.props;
 // Sólo si el CMS está caído o la key no existe (`home === null`) se cae al
 // catálogo semilla completo para no dejar la sección en blanco.
 const home = await getHomeContent();
+
+// Decoración editable desde admin (contrato `home.decor`, CIBA-2581). Slot vacío
+// ⇒ asset actual del repo. El line-art de montañas queda fuera del contrato:
+// va inline (currentColor) y desde una URL CMS perdería la herencia de color.
+const decor = await getHomeDecor();
+const leafLeft = decor.activitiesLeaf ?? '/assets/redesign/decor/botanica-teal.png';
+const leafRight = decor.activitiesLeaf ?? '/assets/redesign/decor/botanica-margen.png';
+const waveDivider = decor.activitiesWaveDivider ?? '/assets/redesign/decor/wave-divider.svg';
 
 const pick = (o: string | undefined, fb: string): string =>
   o !== undefined && o.trim() !== '' ? o : fb;
@@ -84,9 +92,9 @@ const totalActivities = families.reduce((n, f) => n + f.cards.length, 0);
        Inline + currentColor teal + opacidad baja como lavado de fondo. -->
   <div class="decor decor--mountains" aria-hidden="true" set:html={montanasSolPuente} />
 
-  <!-- Rama botánica teal, margen izquierdo a lo largo de la sección (punto 3) -->
+  <!-- Rama botánica, margen izquierdo a lo largo de la sección (punto 3; slot CMS activities_leaf) -->
   <img
-    src="/assets/redesign/decor/botanica-teal.png"
+    src={leafLeft}
     alt=""
     aria-hidden="true"
     class="decor decor--left"
@@ -95,9 +103,9 @@ const totalActivities = families.reduce((n, f) => n + f.cards.length, 0);
     loading="lazy"
     decoding="async"
   />
-  <!-- Rama olivo+bayas, margen derecho (punto 3) -->
+  <!-- Rama olivo+bayas, margen derecho (punto 3; slot CMS activities_leaf) -->
   <img
-    src="/assets/redesign/decor/botanica-margen.png"
+    src={leafRight}
     alt=""
     aria-hidden="true"
     class="decor decor--right"
@@ -156,10 +164,11 @@ const totalActivities = families.reduce((n, f) => n + f.cards.length, 0);
 
   </div>
 
-  <!-- Divider decorativo inferior -->
+  <!-- Divider decorativo inferior (slot CMS activities_wave_divider; interno a la
+       sección, independiente de home.dividers/SectionDivider — CIBA-2385) -->
   <div class="wave-divider" aria-hidden="true">
     <img
-      src="/assets/redesign/decor/wave-divider.svg"
+      src={waveDivider}
       alt=""
       width="1440"
       height="48"
