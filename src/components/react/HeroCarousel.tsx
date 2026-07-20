@@ -32,7 +32,13 @@ import {
   type KeyboardEvent,
 } from 'react';
 import { AnimatePresence, motion, useReducedMotion, type Variants } from 'framer-motion';
-import type { HeroRotation, HeroSlide, HeroTextBlock } from '../../lib/cms';
+import type {
+  HeroBlockViewStyles,
+  HeroCtaVisibility,
+  HeroRotation,
+  HeroSlide,
+  HeroTextBlock,
+} from '../../lib/cms';
 import { resolveHeroFont } from '../../lib/heroFonts';
 
 interface Props {
@@ -89,24 +95,72 @@ function slideStyleVars(slide: HeroSlide): CSSProperties {
   } as CSSProperties;
 }
 
+// ─── CSS vars por bloque (overrides de tamaño/color por vista, CIBA-2593) ─────
+// Sólo emite las vars definidas: sin overrides no hay vars y la cascada CSS
+// (var(--hero-block-*) → var(--hero-*) → default del tema) queda como hoy.
+// El corte desktop/móvil lo hace la media query de Hero.astro (mismo breakpoint
+// portrait 9:16 que PORTRAIT_MEDIA_QUERY).
+function blockStyleVars(block: HeroTextBlock | undefined): CSSProperties | undefined {
+  const st = block?.styles;
+  if (!st) return undefined;
+  const vars: Record<string, string> = {};
+  const set = (view: 'desktop' | 'mobile', v: HeroBlockViewStyles) => {
+    if (v.titleSize !== undefined) vars[`--hero-block-title-size-${view}`] = `${v.titleSize}px`;
+    if (v.subtitleSize !== undefined)
+      vars[`--hero-block-subtitle-size-${view}`] = `${v.subtitleSize}px`;
+    if (v.titleColor) vars[`--hero-block-title-color-${view}`] = v.titleColor;
+    if (v.subtitleColor) vars[`--hero-block-subtitle-color-${view}`] = v.subtitleColor;
+  };
+  set('desktop', st.desktop);
+  set('mobile', st.mobile);
+  return vars as CSSProperties;
+}
+
+// ─── Visibilidad de un CTA por vista (CIBA-2593) ──────────────────────────────
+// Pre-hidratación (viewport null) el CTA se pinta si es visible en ALGUNA vista
+// y las clases hero-cta--hide-* lo ocultan por media query (display:none ⇒ fuera
+// del tab-order y del árbol a11y). Con viewport resuelto, el toggle OFF elimina
+// el nodo del DOM (requisito del contrato: no existe/no tabulable en esa vista).
+function ctaRender(vis: HeroCtaVisibility, mobileViewport: boolean | null) {
+  const show =
+    mobileViewport === null
+      ? vis.showDesktop || vis.showMobile
+      : mobileViewport
+        ? vis.showMobile
+        : vis.showDesktop;
+  const hideClass = [
+    !vis.showDesktop ? 'hero-cta--hide-desktop' : '',
+    !vis.showMobile ? 'hero-cta--hide-mobile' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return { show, hideClass };
+}
+
 // ─── Bloque de texto (overline / título / subtítulo / CTAs) ───────────────────
 function HeroText({
   block,
   reduced,
   stagger,
+  mobileViewport,
 }: {
   block: HeroTextBlock;
   reduced: boolean;
   stagger: number;
+  mobileViewport: boolean | null;
 }) {
   const hasOverline = typeof block.overline === 'string' && block.overline.trim() !== '';
   const primaryLabel = block.ctaLabel || 'Reservar ahora';
   const secondaryLabel = block.ctaSecondaryLabel || 'Ver actividades';
 
-  const primary = (
+  const primaryVis = ctaRender(block.buttons.ctaPrimary, mobileViewport);
+  const secondaryVis = ctaRender(block.buttons.ctaSecondary, mobileViewport);
+  const hasActions = primaryVis.show || secondaryVis.show;
+
+  const primary = primaryVis.show && (
     <a
       href={block.ctaUrl}
-      className="btn-reserve"
+      className={`btn-reserve${primaryVis.hideClass ? ` ${primaryVis.hideClass}` : ''}`}
       target="_blank"
       rel="noopener noreferrer"
       aria-label={`${primaryLabel} — abre en nueva pestaña`}
@@ -114,8 +168,11 @@ function HeroText({
       {primaryLabel}
     </a>
   );
-  const secondary = (
-    <a href={block.ctaSecondaryUrl} className="btn-secondary">
+  const secondary = secondaryVis.show && (
+    <a
+      href={block.ctaSecondaryUrl}
+      className={`btn-secondary${secondaryVis.hideClass ? ` ${secondaryVis.hideClass}` : ''}`}
+    >
       {secondaryLabel}
     </a>
   );
@@ -126,10 +183,12 @@ function HeroText({
         {hasOverline && <div className="hero-tag">{block.overline}</div>}
         <h1 className="hero-title">{block.title}</h1>
         <p className="hero-subtitle">{block.subtitle}</p>
-        <div className="hero-actions">
-          {primary}
-          {secondary}
-        </div>
+        {hasActions && (
+          <div className="hero-actions">
+            {primary}
+            {secondary}
+          </div>
+        )}
       </div>
     );
   }
@@ -153,10 +212,12 @@ function HeroText({
       <motion.p className="hero-subtitle" variants={childVariants}>
         {block.subtitle}
       </motion.p>
-      <motion.div className="hero-actions" variants={childVariants}>
-        {primary}
-        {secondary}
-      </motion.div>
+      {hasActions && (
+        <motion.div className="hero-actions" variants={childVariants}>
+          {primary}
+          {secondary}
+        </motion.div>
+      )}
     </motion.div>
   );
 }
@@ -217,6 +278,33 @@ export default function HeroCarousel({ slides, rotation }: Props) {
       }
     });
   }, [portraitViewport, slides, active]);
+
+  // ─── Viewport móvil para toggles de CTA (CIBA-2593) ─────────────────────────
+  // Mismo breakpoint que la variante portrait 9:16 (PORTRAIT_MEDIA_QUERY,
+  // CIBA-2558). Sólo se escucha si algún bloque tiene un toggle en OFF: con el
+  // contenido actual de producción no hay listener ni re-render extra.
+  const hasCtaToggles = useMemo(
+    () =>
+      slides.some((s) =>
+        s.blocks.some(
+          (b) =>
+            !b.buttons.ctaPrimary.showDesktop ||
+            !b.buttons.ctaPrimary.showMobile ||
+            !b.buttons.ctaSecondary.showDesktop ||
+            !b.buttons.ctaSecondary.showMobile,
+        ),
+      ),
+    [slides],
+  );
+  const [mobileViewport, setMobileViewport] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!hasCtaToggles) return;
+    const mq = window.matchMedia(PORTRAIT_MEDIA_QUERY);
+    const update = () => setMobileViewport(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, [hasCtaToggles]);
 
   const activeSlide = slides[active] ?? slides[0];
   const activeIsVideo = activeSlide?.background.type === 'video';
@@ -599,9 +687,14 @@ export default function HeroCarousel({ slides, rotation }: Props) {
               <div
                 key={`${active}:${blockIdx}`}
                 className="hero-slide-text"
-                style={styleVarsByIndex[active]}
+                style={{ ...styleVarsByIndex[active], ...blockStyleVars(activeBlock) }}
               >
-                <HeroText block={activeBlock} reduced={reduced} stagger={stagger} />
+                <HeroText
+                  block={activeBlock}
+                  reduced={reduced}
+                  stagger={stagger}
+                  mobileViewport={mobileViewport}
+                />
               </div>
             )}
           </AnimatePresence>

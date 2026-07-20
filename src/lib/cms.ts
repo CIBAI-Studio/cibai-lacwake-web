@@ -126,6 +126,35 @@ export interface HeroSlideBackground {
 }
 
 /**
+ * Overrides de texto de un bloque para una vista (contrato CIBA-2593).
+ * `undefined` en un campo = cae al siguiente nivel de la cascada
+ * (slide.typography → defaults del tema). `subtitleColor` colorea también
+ * el overline.
+ */
+export interface HeroBlockViewStyles {
+  titleSize?: number;
+  subtitleSize?: number;
+  titleColor?: string;
+  subtitleColor?: string;
+}
+
+export interface HeroBlockStyles {
+  desktop: HeroBlockViewStyles;
+  mobile: HeroBlockViewStyles;
+}
+
+/** Visibilidad de un CTA por vista (contrato CIBA-2593). Ausente ⇒ visible. */
+export interface HeroCtaVisibility {
+  showDesktop: boolean;
+  showMobile: boolean;
+}
+
+export interface HeroBlockButtons {
+  ctaPrimary: HeroCtaVisibility;
+  ctaSecondary: HeroCtaVisibility;
+}
+
+/**
  * Bloque de texto rotatorio dentro de un slide (contrato CIBA-2453 §1).
  * Comparte los campos de texto del slide plano, pero con posición y duración
  * propias. La tipografía y el vídeo siguen siendo por-slide.
@@ -147,6 +176,13 @@ export interface HeroTextBlock {
    * intermedio usa el default de 6 s.
    */
   duration?: number;
+  /**
+   * Estilos de texto por vista (contrato CIBA-2593). `undefined` = sin
+   * overrides → cascada actual (slide.typography → tema) intacta.
+   */
+  styles?: HeroBlockStyles;
+  /** Visibilidad de CTAs por vista (CIBA-2593). Siempre presente, default todo visible. */
+  buttons: HeroBlockButtons;
 }
 
 /** Slide resuelto y saneado, listo para render. Extiende la capa de texto del Hero. */
@@ -691,7 +727,69 @@ function parseSlideDuration(v: unknown): number | undefined {
 }
 
 /** Capa de texto plana de un slide; base del bloque sintetizado legacy. */
-type HeroFlatText = Omit<HeroTextBlock, 'id' | 'duration'>;
+type HeroFlatText = Omit<HeroTextBlock, 'id' | 'duration' | 'styles' | 'buttons'>;
+
+/** Botones todo-visible (default del contrato CIBA-2593 y de bloques sintetizados). */
+function defaultBlockButtons(): HeroBlockButtons {
+  return {
+    ctaPrimary: { showDesktop: true, showMobile: true },
+    ctaSecondary: { showDesktop: true, showMobile: true },
+  };
+}
+
+/** Tamaño en px de un override por vista. Fuera de rango/no numérico → undefined (no clampa). */
+function parseBlockPx(v: unknown): number | undefined {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) && n >= 8 && n <= 200 ? n : undefined;
+}
+
+/** Hex #RRGGBB o undefined (sin fallback: cae al siguiente nivel de la cascada). */
+function vHexOpt(v: unknown): string | undefined {
+  return typeof v === 'string' && HEX_RE.test(v.trim()) ? v.trim() : undefined;
+}
+
+function parseHeroBlockViewStyles(raw: Raw): HeroBlockViewStyles {
+  return {
+    titleSize: parseBlockPx(raw.title_size ?? raw.titleSize),
+    subtitleSize: parseBlockPx(raw.subtitle_size ?? raw.subtitleSize),
+    titleColor: vHexOpt(raw.title_color ?? raw.titleColor),
+    subtitleColor: vHexOpt(raw.subtitle_color ?? raw.subtitleColor),
+  };
+}
+
+/**
+ * `styles` por vista del bloque (contrato CIBA-2593). Devuelve undefined si no
+ * hay ningún override efectivo → cero cambios de render/DOM en contenido actual.
+ */
+function parseHeroBlockStyles(raw: unknown): HeroBlockStyles | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const r = raw as Raw;
+  const desktop = parseHeroBlockViewStyles((r.desktop ?? {}) as Raw);
+  const mobile = parseHeroBlockViewStyles((r.mobile ?? {}) as Raw);
+  const hasAny = [desktop, mobile].some((v) =>
+    Object.values(v).some((x) => x !== undefined),
+  );
+  return hasAny ? { desktop, mobile } : undefined;
+}
+
+/** Toggle de visibilidad de un CTA. No-boolean/ausente → visible (retrocompat). */
+function parseCtaVisibility(raw: unknown): HeroCtaVisibility {
+  const r = (raw && typeof raw === 'object' ? raw : {}) as Raw;
+  const show = (v: unknown) => (typeof v === 'boolean' ? v : true);
+  return {
+    showDesktop: show(r.show_desktop ?? r.showDesktop),
+    showMobile: show(r.show_mobile ?? r.showMobile),
+  };
+}
+
+function parseHeroBlockButtons(raw: unknown): HeroBlockButtons {
+  if (!raw || typeof raw !== 'object') return defaultBlockButtons();
+  const r = raw as Raw;
+  return {
+    ctaPrimary: parseCtaVisibility(r.cta_primary ?? r.ctaPrimary),
+    ctaSecondary: parseCtaVisibility(r.cta_secondary ?? r.ctaSecondary),
+  };
+}
 
 /**
  * Bloque de texto explícito de `blocks[]` (contrato CIBA-2453 §1). `title` es
@@ -719,6 +817,8 @@ function parseHeroTextBlock(raw: Raw, index: number, flat: HeroFlatText): HeroTe
     // Misma semántica que parseSlideDuration: fuera de rango/no numérico →
     // undefined (delega en los defaults de rotación de §3, no clampa).
     duration: parseSlideDuration(raw.duration),
+    styles: parseHeroBlockStyles(raw.styles),
+    buttons: parseHeroBlockButtons(raw.buttons),
   };
 }
 
@@ -772,7 +872,10 @@ function parseHeroSlide(raw: Raw, index: number): HeroSlide {
     typography: parseHeroTypography((raw.typography ?? {}) as Raw),
     video: parseHeroVideo((raw.video ?? {}) as Raw),
     duration: parseSlideDuration(raw.duration),
-    blocks: blocks.length > 0 ? blocks : [{ id: 'block-0', ...flat }],
+    blocks:
+      blocks.length > 0
+        ? blocks
+        : [{ id: 'block-0', ...flat, buttons: defaultBlockButtons() }],
   };
 }
 
@@ -829,7 +932,7 @@ function legacySlideFromHero(h: HeroContent): HeroSlide {
     ...flat,
     typography: h.typography,
     video: h.video,
-    blocks: [{ id: 'block-0', ...flat }],
+    blocks: [{ id: 'block-0', ...flat, buttons: defaultBlockButtons() }],
   };
 }
 
