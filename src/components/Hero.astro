@@ -158,10 +158,18 @@ const firstTitleFont = resolveHeroFont(slides[0]?.typography.title.font ?? 'anto
   .hero-content-layer[data-h='center'] .hero-content { align-items: center; text-align: center; }
   .hero-content-layer[data-h='right'] .hero-content { align-items: flex-end; text-align: right; }
 
+  /* ─── Cascada de estilos por bloque (CIBA-2593) ───
+     bloque por vista (--hero-block-*-desktop/-mobile, inline en .hero-slide-text)
+     > slide.typography (--hero-*) > default del tema. Las vars de bloque sólo
+     existen cuando el CMS define el override, así el fallback de var() reproduce
+     exactamente la cascada actual. "mobile" = max-width 767px, el MISMO
+     breakpoint que la variante portrait 9:16 (PORTRAIT_MEDIA_QUERY, CIBA-2558).
+     `subtitle_color` colorea subtitle y overline (contrato §2). */
+
   /* Overline en versalitas con tracking (accent configurable). */
   .hero-tag {
     display: inline-block;
-    color: var(--hero-title-accent, #fbbf24);
+    color: var(--hero-block-subtitle-color-desktop, var(--hero-title-accent, #fbbf24));
     font-family: var(--hero-subtitle-font, var(--font-body));
     font-size: 0.8125rem;
     font-weight: 700;
@@ -172,10 +180,10 @@ const firstTitleFont = resolveHeroFont(slides[0]?.typography.title.font ?? 'anto
 
   .hero-title {
     font-family: var(--hero-title-font, var(--font-heading));
-    font-size: var(--hero-title-size, clamp(2.5rem, 7.5vw, 5.75rem));
+    font-size: var(--hero-block-title-size-desktop, var(--hero-title-size, clamp(2.5rem, 7.5vw, 5.75rem)));
     font-weight: 700;
     line-height: 1.05;
-    color: var(--hero-title-color, white);
+    color: var(--hero-block-title-color-desktop, var(--hero-title-color, white));
     letter-spacing: -0.02em;
     max-width: 15ch;
     margin: 0;
@@ -184,11 +192,40 @@ const firstTitleFont = resolveHeroFont(slides[0]?.typography.title.font ?? 'anto
 
   .hero-subtitle {
     font-family: var(--hero-subtitle-font, var(--font-body));
-    font-size: var(--hero-subtitle-size, clamp(1rem, 2vw, 1.25rem));
-    color: var(--hero-subtitle-color, rgba(255, 255, 255, 0.8));
+    font-size: var(--hero-block-subtitle-size-desktop, var(--hero-subtitle-size, clamp(1rem, 2vw, 1.25rem)));
+    color: var(--hero-block-subtitle-color-desktop, var(--hero-subtitle-color, rgba(255, 255, 255, 0.8)));
     line-height: 1.6;
     max-width: 46ch;
     margin: 0;
+  }
+
+  @media (max-width: 767px) {
+    .hero-tag {
+      color: var(--hero-block-subtitle-color-mobile, var(--hero-title-accent, #fbbf24));
+    }
+    .hero-title {
+      font-size: var(--hero-block-title-size-mobile, var(--hero-title-size, clamp(2.5rem, 7.5vw, 5.75rem)));
+      color: var(--hero-block-title-color-mobile, var(--hero-title-color, white));
+    }
+    .hero-subtitle {
+      font-size: var(--hero-block-subtitle-size-mobile, var(--hero-subtitle-size, clamp(1rem, 2vw, 1.25rem)));
+      color: var(--hero-block-subtitle-color-mobile, var(--hero-subtitle-color, rgba(255, 255, 255, 0.8)));
+    }
+  }
+
+  /* ─── Toggles de CTA por vista (CIBA-2593) ───
+     Salvaguarda SSR/pre-hidratación: display:none saca el CTA del tab-order y
+     del árbol de accesibilidad; tras hidratar, el nodo se elimina del DOM. */
+  @media (min-width: 768px) {
+    .hero-cta--hide-desktop {
+      display: none;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .hero-cta--hide-mobile {
+      display: none;
+    }
   }
 
   .hero-actions {
